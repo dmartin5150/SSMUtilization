@@ -1008,10 +1008,11 @@ def updateProcedureLists(curRow,unit,room, block_date, procedures,blockType,proc
         for x in range(procedures.shape[0]):
             procedureRow = procedures.iloc[x]
             curProcedure = {'fullName':procedureRow.fullName, 'procedureDtNoTime':procedureRow.procedureDtNoTime,
-                       'unit':procedureRow.unit, 'procedureName':procedureRow.procedureName,'NPI': procedureRow.NPI,
-                       'local_start_time':procedureRow.local_start_time, 'local_end_time':procedureRow.local_end_time}
+                       'unit':procedureRow.unit, 'procedureName':procedureRow.procedureName,'NPI': str(procedureRow.NPI),
+                       'local_start_time':procedureRow.local_start_time, 'local_end_time':procedureRow.local_end_time,
+                       'room':procedureRow.room}
             localProcList.append(curProcedure)
-        blockObj ={'blockId': curRow['flexId'], 'blockName':curRow['blockName'], 'room':room,'unit':unit,
+        blockObj ={'blockId': str(curRow['flexId']), 'blockName':curRow['blockName'], 'room':room,'unit':unit,
                    'blockDate':block_date.strftime("%Y-%m-%d"),'type': blockType, 'procs':localProcList}
         procList.append(blockObj)
         return procList
@@ -1111,7 +1112,7 @@ def get_filtered_procedures(procedures, npi_list):
 
 procedureList =[]
 
-block_stats, procedureList = get_block_stats(block_no_release,block_owner,dataFrameLookup['BH JRI'], 'BH JRI',num_npis,'2023-7-1')
+# block_stats, procedureList = get_block_stats(block_no_release,block_owner,dataFrameLookup['BH JRI'], 'BH JRI',num_npis,'2023-7-1')
 
 print(procedureList)
 # print(block_stats['blockDate'].sort_values().drop_duplicates().to_list())
@@ -1126,6 +1127,7 @@ def get_block_data():
     unit = get_data(request.json, "unit")
     selectAll = get_data(request.json, "selectAll")
     startDate = get_data(request.json, "startDate")
+    print(request)
     selectedProviders  = get_data(request.json, "selectedProviders")
     procedures = dataFrameLookup[unit]
     if not(selectAll):
@@ -1222,4 +1224,4 @@ def get_pt_hours():
 
 
 
-# app.run(host='0.0.0.0', port=5001)
+app.run(host='0.0.0.0', port=5001)
