@@ -234,9 +234,9 @@ def get_grid_block_schedule(roomLists, block_schedule):
                 block_data = block_schedule[(block_schedule['room'] == room) & (block_schedule['blockDate'] == d) ]
                 # block_data = block_schedule[(block_schedule['room'] == room)]
                 if block_data.empty:
-                    grid_block_data.loc[index]= [room, d, False]
-                else: 
-                    grid_block_data.loc[index]=[room, d, True]
+                    grid_block_data.loc[index]= [room, d, 0]
+                else:
+                    grid_block_data.loc[index]=[room, d, 1]
                 index +=1
     return grid_block_data
                     
@@ -1005,41 +1005,51 @@ def updateProcedureLists(curRow,unit,room, block_date, procedures,blockType,proc
         procedures['local_start_time']= procedures['local_start_time'].apply(lambda x: formatProcedureTimes(x))
         procedures['local_end_time']=procedures['local_end_time'].apply(lambda x: formatProcedureTimes(x))
         localProcList =[]
+        bt='ALL'
+        weekday = block_date.isoweekday()
         for x in range(procedures.shape[0]):
             procedureRow = procedures.iloc[x]
+            if(room == procedureRow.room):
+                bt = 'IN'
+            else: 
+                bt = 'OUT'
             curProcedure = {'fullName':procedureRow.fullName, 'procedureDtNoTime':procedureRow.procedureDtNoTime,
                        'unit':procedureRow.unit, 'procedureName':procedureRow.procedureName,'NPI': str(procedureRow.NPI),
                        'local_start_time':procedureRow.local_start_time, 'local_end_time':procedureRow.local_end_time,
-                       'room':procedureRow.room}
+                       'room':procedureRow.room, 'type':bt}
             localProcList.append(curProcedure)
         blockObj ={'blockId': str(curRow['flexId']), 'blockName':curRow['blockName'], 'room':room,'unit':unit,
-                   'blockDate':block_date.strftime("%Y-%m-%d"),'type': blockType, 'procs':localProcList}
+                   'weekday':weekday, 'blockDate':block_date.strftime("%Y-%m-%d"),'type': bt, 'procs':localProcList,
+                   'start_time':str(formatProcedureTimes(get_block_date_with_time(curRow['start_time']))),'end_time':str(formatProcedureTimes(get_block_date_with_time(curRow['end_time']))),
+                   'blockName':curRow['blockName'],
+                    'releaseDate':date.strftime(curRow['releaseDate'],"%m-%d-%Y") }
+
         procList.append(blockObj)
         return procList
 
-
-def get_all_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats):
+def get_all_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
     procedures = get_all_block_procedures(procedure_data,npis,block_date)
+    procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'ALL',procList)
     return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'ALL')
 
 def get_in_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
     procedures = get_in_room_block_procedures(procedure_data,npis,block_date,room)
-    procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'IN',procList)
+    # procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'IN',procList)
     return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'IN'), procList 
 
 def get_out_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
     procedures = get_out_room_block_procedures(procedure_data,npis,block_date,room)
-    procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'OUT',procList)
+    # procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'OUT',procList)
     return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'OUT'), procList     
         
 block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type']
 
 
 def get_block_report_hours(data):
-    block_report_hours = [{'blocks': {'id':str(row.id), 'blockDate':row.blockDate.strftime("%Y-%m-%d"),'unit':row.unit,
-                                    'room':row.room, 'utilization':row.utilization,'bt_mimnutes':str(row.bt_minutes),
+    block_report_hours = [{'id':str(row.id), 'blockDate':row.blockDate.strftime("%Y-%m-%d"),'unit':row.unit,
+                                    'room':row.room, 'utilization':row.utilization,'bt_minutes':str(row.bt_minutes),
                                     'nbt_minutes':str(row.nbt_minutes),'total_minutes':str(row.total_minutes),
-                                    'type':row.type}} for index, row in data.iterrows()] 
+                                    'type':row.type} for index, row in data.iterrows()] 
     return block_report_hours
 
 
@@ -1077,9 +1087,10 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
             daily_block_data = block_data[(block_data['blockDate'] == block_date) &
                                     (block_data['room'] == room)]
             for x in range(daily_block_data.shape[0]):
+                print(daily_block_data.columns)
                 curRow = daily_block_data.iloc[x]
                 npis = getOwnerNPIs (block_owner, curRow['flexId'],num_npis)
-                block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats)
+                block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
                 block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
                 block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
 
