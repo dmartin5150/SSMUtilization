@@ -12,14 +12,15 @@ from facilityconstants import units,jriRooms, stmSTORRooms,MTORRooms,orLookUp,pr
 from blockData import get_block_data
 from blockTemplates import get_block_templates
 from blockSchedule import get_block_schedule
+from gridBlockSchedule import get_grid_block_schedule
+from blockDetails import get_block_details_data
+from blockOwner import get_block_owner
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = "seamless care" # for encrypting the session
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-
-
 
 
 
@@ -37,158 +38,53 @@ def get_block_date_with_time(dt):
 block_data = pd.read_csv("blockslots.csv")
 block_data = get_block_data(block_data)
 block_templates = get_block_templates(block_data)
-
-
-
-
-
-# block_search_cols = [ 'candidateId', 'market', 'ministry', 'hospital', 'unit', 'room','flexId',
-#        'blockName', 'releaseDays', 'type','dow','wom1','wom2', 'wom3','wom4','wom5','start_time','end_time']
-
-
-# manual_release_cols = ['ministry', 'slotId', 'startDtTm','endDtTm']
-# manual_release = pd.read_csv('blockrelease.csv', usecols=manual_release_cols, parse_dates=['startDtTm','endDtTm'])
-# manual_release['blockDate'] = manual_release['startDtTm'].apply(lambda x: x.date())
-# manual_release = manual_release[(manual_release['ministry'] == 'TNNAS')]
-# manual_release.to_csv('manualRelease.csv')
-
-# def getReleaseDate(curday, td):
-#     day = curday - timedelta(days=td)
-#     # print(day, type(day))
-#     return day
-
-# def updateAutoRelease(releaseDay):
-#     return releaseDay <= date.today()
-
-# def updateManualRelease(blockDate, slotId,releaseStatus, releaseData):
-#     curData = pd.DataFrame(columns=manual_release_cols )
-#     if releaseStatus:
-#         return True
-#     curData = releaseData[(releaseData['blockDate'] == blockDate) & (releaseData['slotId']== slotId)]
-#     return not(curData.empty)
-
-
-
-
-# def get_block_schedule(startDate, data,roomLists, releaseData):
-
-#     block_schedule = pd.DataFrame(columns=block_search_cols)
-#     curWOM = 1
-#     c = Calendar()
-#     first_day_of_month = True
-#     for d in [x for x in c.itermonthdates(2023, startDate.month) if x.month == startDate.month]:
-#         curDOW = d.isoweekday()
-#         for roomList in roomLists: 
-#             for room in roomList:
-#                 curData = data[(data['room'] == room) & (data['dow']== curDOW) &
-#                                         ((data['wom1'] == curWOM) | (data['wom2'] == curWOM ) |
-#                                         (data['wom3'] == curWOM) | (data['wom4'] == curWOM)  |
-#                                         (data['wom5'] == curWOM))].copy()
-#                 if curData.empty:
-#                     continue 
-#                 curData['blockDate'] = d
-#                 block_schedule = block_schedule.append(curData)
-#         if ((d.isoweekday() == 6) & (first_day_of_month)):
-#             curWOM = 1
-#             first_day_of_month = False
-#         elif (d.isoweekday() == 6):
-#             curWOM +=1
-
-#     block_no_release = block_schedule
-#     block_schedule['releaseDays'] = block_schedule['releaseDays'].apply(lambda x: x/1440)
-#     block_schedule['releaseDate'] = block_schedule.apply(lambda row: getReleaseDate(row['blockDate'],row['releaseDays']),axis=1)
-#     block_schedule['releaseDate'] = pd.to_datetime(block_schedule['releaseDate'], format='%Y-%m-%d')
-#     block_schedule['releaseStatus'] = block_schedule.apply(lambda row: updateAutoRelease(row['releaseDate']), axis=1)
-#     block_schedule['autorelease'] = block_schedule.apply(lambda row: updateAutoRelease(row['releaseDate']), axis=1)
-#     block_schedule['releaseStatus'] = block_schedule.apply(lambda row: updateManualRelease(row['blockDate'], row['candidateId'],row['releaseStatus'],releaseData),axis=1)
-#     block_schedule['manualRelease'] =block_schedule.apply(lambda row: updateManualRelease(row['blockDate'], row['candidateId'],row['releaseStatus'],releaseData),axis=1)
-#     return block_no_release, block_schedule[block_schedule['releaseStatus'] == False]
-
 startDate = get_procedure_date('2023-6-1').date()
 roomLists = [jriRooms,stmSTORRooms,MTORRooms]
-
 block_no_release, block_schedule = get_block_schedule(startDate, block_templates,roomLists) 
-
-
-
-
-
-grid_block_data_cols = ['room', 'blockDate', 'block_status']
-
-def get_grid_block_schedule(startDate,roomLists, block_schedule):
-    grid_block_data = pd.DataFrame(columns=grid_block_data_cols)
-    c = Calendar()
-    index = 0
-    # print('rooms', block_schedule['room'])
-    for d in [x for x in c.itermonthdates(2023, startDate.month) if x.month == startDate.month]:
-        for roomList in roomLists:
-            for room in roomList: 
-                block_data = block_schedule[(block_schedule['room'] == room) & (block_schedule['blockDate'] == d) ]
-                # block_data = block_schedule[(block_schedule['room'] == room)]
-                if block_data.empty:
-                    grid_block_data.loc[index]= [room, d, 0]
-                else:
-                    grid_block_data.loc[index]=[room, d, 1]
-                index +=1
-    return grid_block_data
-                    
-
-
-
-
-
-
-
 grid_block_schedule = get_grid_block_schedule(startDate,roomLists,block_schedule) 
 
 
-def formatProcedureTimes(date):
-    return date.strftime("%I:%M %p")
+# def formatProcedureTimes(date):
+#     return date.strftime("%I:%M %p")
 
-def printType(date):
-    return date
-
-
-def get_block_details_data(room, blockDate, data):
-    curDate = get_procedure_date(blockDate).date()
-    block_data = data[(data['room'] == room) & (data['blockDate'] == curDate)]
-    if block_data.empty:
-        return []
-    else:
-      return[{'name': row.blockName, 'startTime':str(formatProcedureTimes(get_block_date_with_time(row.start_time))),'endTime':str(formatProcedureTimes(get_block_date_with_time(row.end_time))),'releaseDate':date.strftime(row.releaseDate,"%m-%d-%Y")} for index, row in block_data.iterrows()]  
+# def printType(date):
+#     return date
 
 
-
+# def get_block_details_data(room, blockDate, data):
+#     curDate = get_procedure_date(blockDate).date()
+#     block_data = data[(data['room'] == room) & (data['blockDate'] == curDate)]
+#     if block_data.empty:
+#         return []
+#     else:
+#       return[{'name': row.blockName, 'startTime':str(formatProcedureTimes(get_block_date_with_time(row.start_time))),'endTime':str(formatProcedureTimes(get_block_date_with_time(row.end_time))),'releaseDate':date.strftime(row.releaseDate,"%m-%d-%Y")} for index, row in block_data.iterrows()]  
 
 
 
 
 block_owner = pd.read_csv("blockowners.csv")
+block_owner = get_block_owner(block_owner)
 
-def get_num_npis(data):
-    mylist = data.columns.tolist()
+# def get_num_npis(data):
+#     mylist = data.columns.tolist()
     # print('mylist', mylist)
-    r = re.compile("^npis")
-    newlist = list(filter(r.match, mylist)) # Read Note below
-    return len(newlist)
+    # r = re.compile("^npis")
+    # newlist = list(filter(r.match, mylist)) # Read Note below
+    # return len(newlist)
 
 # print('columns', block_owner.columns)
-num_npis = get_num_npis(block_owner)
+# num_npis = get_num_npis(block_owner)
 
 
 
-def fill_empty_npis(num_npis, data):
-    for x in range(num_npis):
-        data = fill_column(f'npis[{x}]', -1,data)
-    return data
+# def fill_empty_npis(num_npis, data):
+#     for x in range(num_npis):
+#         data = fill_column(f'npis[{x}]', -1,data)
+#     return data
 
-block_owner = fill_empty_npis(num_npis, block_owner)
+# block_owner = fill_empty_npis(num_npis, block_owner)
 
-# print(block_owner.shape)
-block_owner = block_owner[(block_owner['type'] == 'Surgeon') | (block_owner['type'] == 'Surgeon Group') ]
-# print(block_owner.shape)
-# block_owners = create_block_owners(block_owner, num_npis)
-# print(block_owners)
+# block_owner = block_owner[(block_owner['type'] == 'Surgeon') | (block_owner['type'] == 'Surgeon Group') ]
 
 
 
@@ -1148,25 +1044,6 @@ def get_pt_hours():
 
     # print('pt hours', pt_hours['surgeryInfo'])
     return json.dumps (pt_hours), 200
-
-
-
-
-# pt_hours={}
-# for unit in units: 
-# pt_hours['BH JRI'] = get_unit_report_hours(get_prime_time_procedure_hours('BH JRI', "7:30", "15:30"))
-# print (pt_hours['BH JRI'][0]['details'])
-
-
-
-# pt_hours = get_prime_time_procedure_hours('STM ST OR', "7:30", "15:30")
-# pt_hours.to_csv('pt_hours-STMSTOR.csv')
-# pt_hours_object = get_unit_report_hours(pt_hours)
-# print(pt_hours_object)
-# @app.route('/', methods=['GET'])
-# def say_hello():
-#     return json.dumps({'hello':'Hello'}), 200
-
 
 
 
