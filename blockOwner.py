@@ -22,3 +22,26 @@ def get_block_owner(block_owner):
     num_npis = get_num_npis(block_owner)
     block_owner = fill_empty_npis(num_npis, block_owner)
     return block_owner[(block_owner['type'] == 'Surgeon') | (block_owner['type'] == 'Surgeon Group') ]
+
+def create_block_owners(data, npis):
+    data.reset_index(inplace=True)
+    cur_npi_list = []
+    num_rows = data.shape[0]
+    for x in range(num_rows):
+        cur_row = data.iloc[x]
+        for npi in range (npis):
+            if cur_row[f'npis[{npi}]'] == -1:
+                break
+            cur_npi_list.append(int(cur_row[f'npis[{npi}]'])) 
+
+    return cur_npi_list
+
+def get_owner_npis (data, flexId,num_npis):
+    curData = data[data['ownerId'] == flexId]
+    return create_block_owners(curData,num_npis)
+
+def check_selected_npis(npis, selectedNPIs):
+    for npi in selectedNPIs:
+        if (npi in npis):
+            return True
+    return False

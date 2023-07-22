@@ -9,7 +9,7 @@ from calendar import Calendar, monthrange
 import re
 
 from facilityconstants import units,jriRooms, stmSTORRooms,MTORRooms,orLookUp,primetime_minutes_per_room
-from utilities import formatProcedureTimes, formatMinutes
+from utilities import formatProcedureTimes, formatMinutes,all_dates_current_month
 from blockData import get_block_data
 from blockTemplates import get_block_templates
 from blockSchedule import get_block_schedule
@@ -19,6 +19,8 @@ from blockOwner import get_block_owner
 from unitData import get_unit_data
 from primeTimeProcedures import getPTProcedures
 from roomDetails import get_room_details
+from padData import pad_data
+from blockStats import get_block_stats
 
 
 app = Flask(__name__)
@@ -56,20 +58,6 @@ jriData = get_unit_data('JRIData.csv',grid_block_schedule)
 STMSTORData = get_unit_data('STMSTORData.csv',grid_block_schedule)
 MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
 dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
-
-# def formatMinutes(minutes):
-#        h, m = divmod(minutes, 60)
-#        return '{:d} hours {:02d} minutes'.format(int(h), int(m))
-
-
-
-
-def all_dates_current_month(month,year):
-    number_of_days = calendar.monthrange(year, month)[1]
-    first_date = date(year, month, 1)
-    last_date = date(year, month, number_of_days)
-    delta = last_date - first_date
-    return [(first_date + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(delta.days + 1)]
 
 
 
@@ -119,36 +107,8 @@ def addBlankCalendarData(data, procedure_date, unit):
     blank_data['non_prime_time_minutes'] = '0'
     return data.append(blank_data, ignore_index=True)
 
-def getBlankEntry (id, unit,date):
-    return {'id': id, 'calendar': {'unit': unit, 'NPI': '0', 'procedureDate': date, 'room': 'none', 'prime_time_minutes': '0', 'non_prime_time_minutes': '0'}, 'grid': {'unit': unit, 'room': 'none', 'procedureDate': date, 'prime_time_minutes': '0', 'non_prime_time_minutes': '0'}, 'details': {'fullName': 'Blank', 'local_start_time': '00:00 PM', 'local_end_time': '00:00 PM', 'procedureName': 'Blank', 'duration': '0', 'procedureDate': date}}
 
-
-
-def pad_data(pt_hours,unit,start_date):
-    data = pt_hours['surgeryInfo']
-    # print('data', data)
-    procedure_dates = []
-    for procedure in data:
-        if procedure['calendar']['procedureDate'] in procedure_dates:
-            continue
-        procedure_dates.append(procedure['calendar']['procedureDate'])
-    procedure_date = get_procedure_date(start_date)
-    month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
-    missing_dates = list(set(month_dates).difference(procedure_dates))
-    weekdays = []
-    for date in missing_dates:
-        curDate = get_procedure_date(date)
-        if ((curDate.isoweekday() == 6) | (curDate.isoweekday() == 7)):
-            continue
-        weekdays.append(date)
-    for weekday in weekdays:
-        idx = len(pt_hours) 
-        blankEntry = getBlankEntry(idx,unit, weekday)
-        pt_hours['surgeryInfo'].append(blankEntry)
-    return pt_hours
-
-
-#remove weekends 
+ 
 def remove_weekends(start_date, data):
     procedure_date = get_procedure_date(start_date)
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
@@ -412,264 +372,7 @@ def get_stats(unit,name, npi):
     return {'surgeon':{'id':npi,'value':npi, 'label':name},
             'mainCard':july_card,
             'secondaryCards':secondary_cards}
-
-
-def get_blocks_from_unit(block_schedule, unit):
-    return block_schedule[block_schedule['unit'] == unit]
-
-def get_block_dates (block_schedule):
-    return block_schedule['blockDate'].drop_duplicates().sort_values().tolist()
-
-def get_block_rooms (block_schedule):
-    return block_schedule['room'].drop_duplicates().sort_values().tolist()
-
-
-def create_block_owners(data, npis):
-    data.reset_index(inplace=True)
-    cur_npi_list = []
-    num_rows = data.shape[0]
-    for x in range(num_rows):
-        cur_row = data.iloc[x]
-        for npi in range (npis):
-            if cur_row[f'npis[{npi}]'] == -1:
-                break
-            cur_npi_list.append(int(cur_row[f'npis[{npi}]'])) 
-
-    return cur_npi_list
-
-
-
-
-def getOwnerNPIs (data, flexId,num_npis):
-    curData = data[data['ownerId'] == flexId]
-    return create_block_owners(curData,num_npis)
-
-def get_time(dt, tm):
-    timezone = pytz.timezone("US/Central")
-    time_components = tm.split(':')
-    hour = time_components[0][-2:]
-    minutes = time_components[1]
-    return timezone.localize(datetime(dt.year, dt.month, dt.day,int(hour), int(minutes), 0))
-
-def update_block_times(data):
-    data['blockStartTime'] = data.apply(lambda row: get_time(row['blockDate'], row['start_time']), axis=1)
-    data['blockEndTime'] = data.apply(lambda row: get_time(row['blockDate'], row['end_time']), axis=1)
-    return data
-
-def get_all_block_procedures(procedure_data,npis,block_date):
-    return procedure_data[(procedure_data['NPI'].isin(npis)) & 
-                          (procedure_data['procedureDtNoTime'] == block_date)].sort_values(by=['local_start_time'])
-
-def get_in_room_block_procedures(procedure_data,npis,block_date,room):
-    return procedure_data[(procedure_data['NPI'].isin(npis)) & 
-                          ((procedure_data['procedureDtNoTime'] == block_date)) & 
-                          (procedure_data['room'] == room)].sort_values(by=['local_start_time'])  
-                                                                                                                                                        
-def get_out_room_block_procedures(procedure_data,npis,block_date,room):
-    return procedure_data[(procedure_data['NPI'].isin(npis)) & 
-                          (procedure_data['procedureDtNoTime'] == block_date) &
-                          (procedure_data['room'] != room) ].sort_values(by=['local_start_time'])    
-
-pseudo_schedule_cols = ['local_start_time', 'local_end_time']
-
-def create_pseudo_schedule(procedures):
-    new_schedule = pd.DataFrame(columns=pseudo_schedule_cols)
-    if procedures.shape[0] > 0:
-        local_start_time = procedures.iloc[0]['local_start_time']
-        local_end_time = procedures.iloc[0]['local_end_time']
-        for x in range(1,procedures.shape[0]):
-            curRow = procedures.iloc[x]
-            if (curRow['local_start_time'] > local_end_time):
-                new_schedule.loc[len(new_schedule.index)] = [local_start_time, local_end_time] 
-                local_start_time = curRow['local_start_time']
-                local_end_time =  curRow['local_end_time']
-            elif ((curRow['local_start_time'] < local_end_time) & (curRow['local_end_time'] < local_end_time)):
-                continue
-            else:
-                local_end_time = curRow['local_end_time']
-        new_schedule.loc[len(new_schedule.index)] = [local_start_time, local_end_time]
-    return new_schedule 
-
-
-def get_block_usage(procedures, block_start, block_end,room_type,id):
-        non_block_time = 0
-        block_time = 0
-        total_minutes = (block_end - block_start).total_seconds()/60
-        for x in range(procedures.shape[0]):
-            curRow = procedures.loc[x]
-            # if ((block_type == 'ALL') & (id == 430001)):
-            #     print('block usage', block_start, block_end, 'proc stat', curRow['local_start_time'], 'proc end', curRow['local_end_time'])
-            if ((curRow['local_end_time'] <= block_start) | (curRow['local_start_time'] >= block_end)):
-                non_block_time += (curRow['local_end_time'] - curRow['local_start_time']).total_seconds()/60
-                continue
-            if ((curRow['local_start_time'] >= block_start) & (curRow['local_end_time'] <= block_end)):
-                block_time += (curRow['local_end_time'] - curRow['local_start_time']).total_seconds()/60
-                continue
-            if ((curRow['local_start_time'] < block_start) & (curRow['local_end_time'] > block_end)):
-                block_time += (block_end - block_start).total_seconds()/60
-                non_block_time += (block_start - curRow['local_start_time']).total_seconds()/60
-                non_block_time += (curRow['local_end_time'] - block_end).total_seconds()/60
-                continue
-            if ((curRow['local_start_time'] == block_start) & (curRow['local_end_time'] > block_end)):
-                block_time += (block_end - block_start).total_seconds()/60
-                non_block_time += (curRow['local_end_time'] - block_end).total_seconds()/60
-                continue
-            if ((curRow['local_start_time'] <block_start) & (curRow['local_end_time'] == block_end)):
-                block_time += (block_end - block_start).total_seconds()/60
-                non_block_time += (block_start-curRow['local_start_time']).total_seconds()/60
-                continue
-            if((curRow['local_start_time'] < block_start) & (curRow['local_end_time'] < block_end)):
-                block_time += (curRow['local_end_time'] - block_start).total_seconds()/60
-                non_block_time += (block_start - curRow['local_start_time']).total_seconds()/60
-                continue
-            if((curRow['local_start_time'] > block_start) & (curRow['local_end_time'] > block_end)):
-                block_time += (block_end - curRow['local_start_time']).total_seconds()/60 
-                non_block_time += (curRow['local_end_time'] - block_end).total_seconds()/60
-                continue
-        return  block_time, non_block_time, total_minutes
-
-def get_block_minutes(procedures,unit, data, block_date,room,block_stats,room_type):
-    pseudo_schedule = create_pseudo_schedule(procedures)
-    bt_minutes, nbt_minutes, total_minutes = get_block_usage(pseudo_schedule, data['blockStartTime'], data['blockEndTime'],room_type,data['flexId'])
-    if total_minutes == 0:
-        utilization = '0%'
-    else:
-        utilization = str(round(bt_minutes/total_minutes*100,0)) +'%'
-    block_stats.loc[len(block_stats.index)]=[data['flexId'],block_date,unit,room,utilization,bt_minutes, nbt_minutes, total_minutes, room_type,data['blockType']]
-
-    return block_stats
-
-def updateProcedureLists(curRow,unit,room, block_date, procedures,roomType,procList):
-        procedures['procedureDtNoTime']= procedures['procedureDtNoTime'].apply(lambda x: x.strftime("%Y-%m-%d"))
-        procedures['local_start_time']= procedures['local_start_time'].apply(lambda x: formatProcedureTimes(x))
-        procedures['local_end_time']=procedures['local_end_time'].apply(lambda x: formatProcedureTimes(x))
-        localProcList =[]
-        bt='ALL'
-        weekday = block_date.isoweekday()
-        for x in range(procedures.shape[0]):
-            procedureRow = procedures.iloc[x]
-            if(room == procedureRow.room):
-                bt = 'IN'
-            else: 
-                bt = 'OUT'
-            curProcedure = {'fullName':procedureRow.fullName, 'procedureDtNoTime':procedureRow.procedureDtNoTime,
-                       'unit':procedureRow.unit, 'procedureName':procedureRow.procedureName,'NPI': str(procedureRow.NPI),
-                       'local_start_time':procedureRow.local_start_time, 'local_end_time':procedureRow.local_end_time,
-                       'room':procedureRow.room, 'type':bt}
-            localProcList.append(curProcedure)
-        blockObj ={'blockId': str(curRow['flexId']), 'blockName':curRow['blockName'], 'room':room,'unit':unit,
-                   'weekday':weekday, 'blockDate':block_date.strftime("%Y-%m-%d"), 'type': bt, 'procs':localProcList,'blockType': curRow['blockType'],
-                   'start_time':str(formatProcedureTimes(get_block_date_with_time(curRow['start_time']))),'end_time':str(formatProcedureTimes(get_block_date_with_time(curRow['end_time']))),
-                   'blockName':curRow['blockName'],
-                    'releaseDate':date.strftime(curRow['releaseDate'],"%m-%d-%Y") }
-
-        procList.append(blockObj)
-        return procList
-
-def get_all_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
-    procedures = get_all_block_procedures(procedure_data,npis,block_date)
-    # print(block_date)
-    procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'ALL',procList)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'ALL')
-
-def get_in_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
-    procedures = get_in_room_block_procedures(procedure_data,npis,block_date,room)
-    # procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'IN',procList)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'IN'), procList 
-
-def get_out_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
-    procedures = get_out_room_block_procedures(procedure_data,npis,block_date,room)
-    # procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'OUT',procList)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'OUT'), procList     
-        
-block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType']
-
-
-def get_block_report_hours(data):
-    block_report_hours = [{'id':str(row.id), 'blockDate':row.blockDate.strftime("%Y-%m-%d"),'unit':row.unit,
-                                    'room':row.room, 'utilization':row.utilization,'bt_minutes':str(row.bt_minutes),
-                                    'nbt_minutes':str(row.nbt_minutes),'total_minutes':str(row.total_minutes),
-                                    'type':row.type,'blockType':row.blockType} for index, row in data.iterrows()] 
-    return block_report_hours
-
-
-def pad_block_data(stats,start_date,unit):
-    stats = remove_block_weekends(start_date, stats)
-    block_dates = stats['blockDate'].apply(lambda x: x.strftime("%Y-%m-%d"))
-    block_dates = block_dates.drop_duplicates().to_list()
-    # print('block dates', block_dates)
-    # procedure_date = get_procedure_date(start_date)
-    procedure_date = start_date
-    month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
-    missing_dates = list(set(month_dates).difference(block_dates))
-    weekdays = []
-    for date in missing_dates:
-        # print('missing date', date)
-        curDate = get_procedure_date(date)
-        if ((curDate.isoweekday() == 6) | (curDate.isoweekday() == 7)):
-            continue
-        weekdays.append(date)
-        for weekday in weekdays:
-            idx = len(stats) 
-            stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'ALL','None']
-            stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'IN','None']
-            stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'OUT','None']
-    return stats.sort_values(by=['blockDate'])
-
-def checkSelectedNPIs(npis, selectedNPIs):
-    for npi in selectedNPIs:
-        if (npi in npis):
-            return True
-    return False
-
-
-def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,start_date,selectAll, selectedNPIs):
-    block_stats = pd.DataFrame(columns=block_stats_cols)
-    
-    # print('blockStats cols',block_stats.columns)
-    block_data = get_blocks_from_unit(block_schedule,unit)
-    block_data = update_block_times(block_data.copy())
-    # print('block_data_cols', block_data.columns)
-    block_dates = get_block_dates(block_data)
-    block_rooms = get_block_rooms(block_data)
-    print('block dates', block_dates)
-    procedure_list = []
-    for block_date in block_dates: 
-        for room in block_rooms:
-            daily_block_data = block_data[(block_data['blockDate'] == block_date) &
-                                    (block_data['room'] == room)]
-            for x in range(daily_block_data.shape[0]):
-                # print(daily_block_data.columns)
-                curRow = daily_block_data.iloc[x]
-                npis = getOwnerNPIs (block_owner, curRow['flexId'],num_npis)
-                if selectAll: 
-                    block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                elif checkSelectedNPIs(npis, selectedNPIs):
-                    block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-
-    
-    block_stats=pad_block_data(block_stats,start_date,unit)
-    
-    return block_stats, procedure_list
-
-
-
-
-
-def remove_block_weekends(procedure_date, data):
-    # procedure_date = get_procedure_date(start_date)
-    month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
-    for date in month_dates: 
-        procedure_date = get_procedure_date(date).date()
-        if ((procedure_date.isoweekday()==6) | (procedure_date.isoweekday() == 7)):
-            data = data[data['blockDate'] != procedure_date]
-            continue
-    return data
-
+                                                                                                                     
 
 
 def get_filtered_procedures(procedures, npi_list): 
