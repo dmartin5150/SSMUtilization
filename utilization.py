@@ -15,12 +15,13 @@ from blockTemplates import get_block_templates
 from blockSchedule import get_block_schedule
 from gridBlockSchedule import get_grid_block_schedule
 from blockDetails import get_block_details_data
-from blockOwner import get_block_owner
+from blockOwner import get_block_owner,get_num_npis
 from unitData import get_unit_data
 from primeTimeProcedures import getPTProcedures
 from roomDetails import get_room_details
 from padData import pad_data
-from blockStats import get_block_stats
+from blockStats import get_block_stats, get_block_report_hours
+from surgeonStats import get_surgeon_stats
 
 
 app = Flask(__name__)
@@ -310,12 +311,6 @@ def get_date_range(start_date):
     end_date = date(next_year, next_month,1)
     return start_date, end_date
 
-def getProcedures(unit,start_date):
-    data = dataFrameLookup[unit]
-    data = data[data['room'].isin(orLookUp[unit])]
-    start_date, end_date = get_date_range(start_date)
-    data = data[(data['procedureDtNoTime']>= start_date) & (data['procedureDtNoTime'] < end_date)]
-    return data.copy()
 
 
 def get_prime_time_procedure_hours(data, prime_time_start_time, prime_time_end_time,start_date):
@@ -335,43 +330,6 @@ def get_prime_time_procedure_hours(data, prime_time_start_time, prime_time_end_t
         prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
     return prime_time_hours
 
-
-
-
-def get_monthly_stats(npi, procedures):
-    daysOfWeek = list(calendar.day_abbr)
-    card =[]
-    for i in range(1,6):
-        weekday = daysOfWeek[i-1]
-        provider_procedures = procedures[(procedures['NPI'] == npi) & (procedures['weekday'] == i)]
-        num_procedures = provider_procedures.shape[0]
-        minutes = formatMinutes(provider_procedures['duration'].sum())
-        card.append({'day':weekday, 'procedure':num_procedures, 'hour':minutes})
-    return card
-
-
-def get_stats(unit,name, npi): 
-    secondary_cards = []
-    july_procedures = getProcedures(unit,'2023-7-1')
-    # print('july procs', july_procedures)
-    july_card_data = get_monthly_stats(npi, july_procedures)
-    july_card = {'title':'July', 'data':july_card_data}
-    june_procedures = getProcedures(unit,'2023-6-1')
-    june_card_data = get_monthly_stats(npi, june_procedures)
-    june_card = {'title':'June', 'data':june_card_data}
-    may_procedures = getProcedures(unit,'2023-7-1')
-    may_card_data = get_monthly_stats(npi, may_procedures)
-    may_card = {'title':'May', 'data':may_card_data}
-    april_procedures = getProcedures(unit,'2023-7-1')
-    april_card_data = get_monthly_stats(npi, april_procedures)
-    april_card = {'title':'April', 'data':april_card_data}
-    secondary_cards.append(april_card)
-    secondary_cards.append(may_card)
-    secondary_cards.append(june_card)
-  
-    return {'surgeon':{'id':npi,'value':npi, 'label':name},
-            'mainCard':july_card,
-            'secondaryCards':secondary_cards}
                                                                                                                      
 
 
@@ -404,8 +362,9 @@ def get_block_data_async():
     # procedures = dataFrameLookup[unit]
     procedures = getPTProcedures(startDate, unit,block_templates)
     # print('block cols', block_no_release['blockType'])
+    num_npis = get_num_npis(block_owner)
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
-    block_no_release,block_schedule = get_block_schedule(startDate, block_templates,roomLists, manual_release)
+    block_no_release,block_schedule = get_block_schedule(startDate, block_templates,roomLists)
     if not(selectAll):
         procedures = get_filtered_procedures(procedures, selectedProviders)
     block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
@@ -418,7 +377,7 @@ def get_surgeon_stats_async():
     npi = int(get_data(request.json, "NPI"))
     name = get_data(request.json, "name")
     # print('name', name, 'npi',npi)
-    return get_stats(unit,name, npi), 200
+    return get_surgeon_stats(unit,name, npi,dataFrameLookup), 200
 
 
 @app.route('/calendar', methods=['POST'])

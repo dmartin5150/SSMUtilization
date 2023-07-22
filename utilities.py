@@ -29,3 +29,14 @@ def all_dates_current_month(month,year):
     last_date = date(year, month, number_of_days)
     delta = last_date - first_date
     return [(first_date + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(delta.days + 1)]
+
+def get_date_range(start_date):
+    start_date = get_procedure_date(start_date).date()
+    if start_date.month == 12:
+        next_month = 1
+        next_year = start_date.year +1
+    else:
+        next_month = start_date.month +1
+        next_year = start_date.year
+    end_date = date(next_year, next_month,1)
+    return start_date, end_date
