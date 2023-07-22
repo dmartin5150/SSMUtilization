@@ -1251,7 +1251,7 @@ def get_details():
     room_details = get_room_details(unit, date_requested, room, data,prime_time_hours['start'], prime_time_hours['end'])
     return json.dumps({'room':room_details, 'block':block_details}), 200
 
-
+print('tets')
 @app.route('/surgeon', methods=['GET'])
 def get_surgeon_lists():
     jriList = get_providers('BH JRI')
