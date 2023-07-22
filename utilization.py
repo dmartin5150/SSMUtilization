@@ -690,7 +690,7 @@ def getEndDate(startDate):
 
 
 @app.route('/blocks', methods=['POST'])
-def get_block_data():
+def get_block_data_async():
     unit = get_data(request.json, "unit")
     selectAll = get_data(request.json, "selectAll")
     curDate = get_data(request.json, "startDate")
@@ -710,7 +710,7 @@ def get_block_data():
 
 
 @app.route('/stats', methods=['POST'])
-def get_surgeon_stats():
+def get_surgeon_stats_async():
     unit = get_data(request.json, "unit")
     npi = int(get_data(request.json, "NPI"))
     name = get_data(request.json, "name")
@@ -719,7 +719,7 @@ def get_surgeon_stats():
 
 
 @app.route('/calendar', methods=['POST'])
-def get_calendar():
+def get_calendar_async():
     # print(request.json)
     date_requested = get_data(request.json, "date")
     unit = get_data(request.json, "unit")
@@ -728,14 +728,14 @@ def get_calendar():
 
 
 @app.route('/grid', methods=['POST'])
-def get_grid():
+def get_grid_async():
     date_requested = get_data(request.json, "date")
     unit = get_data(request.json, "unit")
     data = dataFrameLookup[unit]
     return get_daily_room_utilization(unit, date_requested, data), 200
 
 @app.route('/details', methods=['POST'])
-def get_details():
+def get_details_async():
     date_requested = get_data(request.json, "date")
     unit = get_data(request.json, "unit")
     room = get_data(request.json,"room")
@@ -747,7 +747,7 @@ def get_details():
 
 
 @app.route('/surgeon', methods=['GET'])
-def get_surgeon_lists():
+def get_surgeon_lists_async():
     jriList = get_providers('BH JRI')
     stmSTORList = get_providers('STM ST OR')
     mtORList = get_providers('MT OR')
@@ -756,7 +756,7 @@ def get_surgeon_lists():
                         'MT OR': mtORList}), 200
 
 @app.route('/pt_hours', methods=['POST'])
-def get_pt_hours():
+def get_pt_hours_async():
     pt_hours = {}
     prime_time_hours = get_data(request.json, "primeTime")
     unit = get_data(request.json, "unit")
