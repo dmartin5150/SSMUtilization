@@ -1,8 +1,7 @@
-from utilities import get_procedure_date, get_block_date_with_time
+from utilities import get_procedure_date, get_block_date_with_time,formatProcedureTimes
 from datetime import date;
 
-def formatProcedureTimes(date):
-    return date.strftime("%I:%M %p")
+
 
 def printType(date):
     return date
