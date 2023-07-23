@@ -8,7 +8,6 @@ from flask_cors import CORS
 from calendar import Calendar, monthrange
 import re
 
-
 from dailyUtilization import get_daily_room_utilization
 from providers import get_providers
 from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
@@ -19,7 +18,7 @@ from blockSchedule import get_block_schedule
 from gridBlockSchedule import get_grid_block_schedule
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
-from unitData import get_unit_data
+from unitData2 import get_unit_data
 from primeTimeProcedures import getPTProcedures, get_filtered_procedures
 from roomDetails import get_room_details
 from padData import pad_data
@@ -61,7 +60,6 @@ dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORDat
 
 
 
-
 def get_data(request, string):
     data_requested = request[string]
     return data_requested
@@ -74,11 +72,8 @@ def get_block_data_async():
     curDate = get_data(request.json, "startDate")
     print('curdate',curDate)
     startDate = get_procedure_date(curDate).date()
-    # print(request)
     selectedProviders  = get_data(request.json, "selectedProviders")
-    # procedures = dataFrameLookup[unit]
     procedures = getPTProcedures(startDate, unit,block_templates)
-    # print('block cols', block_no_release['blockType'])
     num_npis = get_num_npis(block_owner)
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     block_no_release,block_schedule = get_block_schedule(startDate, block_templates,roomLists)

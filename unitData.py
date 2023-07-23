@@ -2,7 +2,7 @@ import pandas as pd
 from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
 import pytz;
 from datetime import timezone;
-
+from utilities import get_procedure_date_with_time
 
 def get_unit_data(filename,grid_block_schedule):
     dataCols = ['procedures[0].primaryNpi','startTime','endTime','duration','procedureDate',
@@ -20,7 +20,6 @@ def get_unit_data(filename,grid_block_schedule):
 
     # need to create date column without timestamp
     dataWithSurgeonNames['new_procedureDate'] = pd.to_datetime(dataWithSurgeonNames['procedureDate']).dt.tz_convert(None)
-
 
 
     #add procedure date without time for block information

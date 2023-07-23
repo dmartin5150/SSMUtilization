@@ -10,12 +10,20 @@ def get_num_npis(data):
     newlist = list(filter(r.match, mylist)) # Read Note below
     return len(newlist)
 
-
-
 def fill_empty_npis(num_npis, data):
     for x in range(num_npis):
         data = fill_column(f'npis[{x}]', -1,data)
     return data
+
+def get_owner_npis (data, flexId,num_npis):
+    curData = data[data['ownerId'] == flexId]
+    return create_block_owners(curData,num_npis)
+
+def check_selected_npis(npis, selectedNPIs):
+    for npi in selectedNPIs:
+        if (npi in npis):
+            return True
+    return False
 
 
 def get_block_owner(block_owner):
@@ -36,12 +44,3 @@ def create_block_owners(data, npis):
 
     return cur_npi_list
 
-def get_owner_npis (data, flexId,num_npis):
-    curData = data[data['ownerId'] == flexId]
-    return create_block_owners(curData,num_npis)
-
-def check_selected_npis(npis, selectedNPIs):
-    for npi in selectedNPIs:
-        if (npi in npis):
-            return True
-    return False

@@ -36,7 +36,6 @@ def get_block_report_hours(data):
 def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,start_date,selectAll, selectedNPIs):
     block_stats = pd.DataFrame(columns=block_stats_cols)
     
-    # print('blockStats cols',block_stats.columns)
     block_data = get_blocks_from_unit(block_schedule,unit)
     block_data = update_block_times(block_data.copy())
     block_dates = get_block_dates(block_data)

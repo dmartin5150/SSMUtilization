@@ -70,5 +70,11 @@ def convert_zulu_to_central_time_from_date(date):
 def create_zulu_datetime_from_string(date_string):
     return datetime.strptime(date_string,"%Y-%m-%dT%H:%M:%S.%fZ")
 
+def create_zulu_datetime_from_string_format2(date_string):
+    return datetime.strptime(date_string,'%Y-%m-%d %H:%M:%S%z')
+
 def get_date_from_datetime(date_time):
     return date_time.date()
+
+def get_procedure_date_with_time(dt):
+    return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
