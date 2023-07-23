@@ -35,7 +35,6 @@ def getPTProcedures(startDate, unit,block_templates):
 
 
 def get_procedures_from_date(data, date):
-    selected_date = datetime.strptime('2023-07-24', "%Y-%m-%d").date()
     return data[data['procedureDtNoTime'] == date.date()].sort_values(by=['local_start_time'])
 
 def get_procedures_from_room(data, room):
