@@ -9,6 +9,9 @@ def get_procedure_date(dt):
 def get_block_date_with_time(dt):
     return datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f%z')
 
+def get_procedure_date_with_time(dt):
+    return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
+
 def formatProcedureTimes(date):
     return date.strftime("%I:%M %p")
 
@@ -40,3 +43,23 @@ def get_date_range(start_date):
         next_year = start_date.year
     end_date = date(next_year, next_month,1)
     return start_date, end_date
+
+
+def get_pt_hours_minutes(pt):
+    hour_minutes = pt.split(':')
+    return hour_minutes[0], hour_minutes[1]
+
+def getTimeChange(date, hour, minute): 
+    tz = pytz.timezone("US/Central")
+    new_date= tz.localize(datetime(date.year, date.month, date.day, 0), is_dst=None)                                                                           
+    total_time = int(hour)*60 + int(minute)
+    new_date = ((new_date + timedelta(minutes=total_time)))
+    return (new_date)
+
+
+def getPrimeTimeWithDate(date, prime_time_start, prime_time_end):
+    prime_start_hour, prime_start_minutes = get_pt_hours_minutes(prime_time_start)
+    prime_end_hour, prime_end_minutes = get_pt_hours_minutes(prime_time_end)
+    new_prime_time_start = getTimeChange(date, prime_start_hour, prime_start_minutes)
+    new_prime_time_end = getTimeChange(date,prime_end_hour, prime_end_minutes)
+    return new_prime_time_start, new_prime_time_end

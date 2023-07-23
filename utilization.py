@@ -9,7 +9,7 @@ from calendar import Calendar, monthrange
 import re
 
 from facilityconstants import units,jriRooms, stmSTORRooms,MTORRooms,orLookUp,primetime_minutes_per_room
-from utilities import formatProcedureTimes, formatMinutes,all_dates_current_month
+from utilities import formatProcedureTimes, formatMinutes,all_dates_current_month,get_procedure_date
 from blockData import get_block_data
 from blockTemplates import get_block_templates
 from blockSchedule import get_block_schedule
@@ -22,6 +22,7 @@ from roomDetails import get_room_details
 from padData import pad_data
 from blockStats import get_block_stats, get_block_report_hours
 from surgeonStats import get_surgeon_stats
+from primeTimeProcedureHours import get_prime_time_procedure_hours,get_unit_report_hours
 
 
 app = Flask(__name__)
@@ -31,16 +32,6 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
-
-def get_procedure_date_without_time(dt):
-    return datetime.date(dt)
-
-def get_procedure_date(dt):
-    # print('date', dt)
-    return datetime.strptime(dt, '%Y-%m-%d')
-
-def get_block_date_with_time(dt):
-    return datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f%z')
 
 block_data = pd.read_csv("blockslots.csv")
 block_data = get_block_data(block_data)
@@ -61,9 +52,6 @@ MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
 dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
 
 
-
-def get_procedure_date_with_time(dt):
-    return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
 
 def getDailyUtilization(unit, date,data, prime_minutes_per_room):
 
@@ -109,18 +97,6 @@ def addBlankCalendarData(data, procedure_date, unit):
     return data.append(blank_data, ignore_index=True)
 
 
- 
-def remove_weekends(start_date, data):
-    procedure_date = get_procedure_date(start_date)
-    month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
-    for date in month_dates: 
-        procedure_date = get_procedure_date(date).date()
-        if ((procedure_date.isoweekday()==6) | (procedure_date.isoweekday() == 7)):
-            data = remove_weekend(data,procedure_date)
-            continue
-    return data
-        
-
 
 
 def get_monthly_utilization(start_date,unit,data):
@@ -164,189 +140,10 @@ def get_providers(unit):
     return surgeon_list
 
 
-unit_report_hours_cols = ['duration', 'unit', 'procedureName', 'NPI', 'room', 'procedureDate',
-       'startTime', 'endTime', 'name', 'lastName', 'npi', 'fullName',
-       'new_procedureDate', 'local_start_time', 'local_end_time',
-       'prime_time_minutes','non_prime_time_minutes']
-
-def get_unit_report_hours(data):
-    unit_report_hours = [{'id': index,
-                          'calendar': {
-                              'unit': row.unit,'NPI': row.NPI,'procedureDate': str(row.procedureDtNoTime), 
-                              'room': row.room, 'prime_time_minutes': row.prime_time_minutes,'non_prime_time_minutes':row.non_prime_time_minutes, 'weekday': str(row.weekday) },
-                            'grid': {'unit': row.unit,'room': row.room,'NPI':row.NPI, 'procedureDate': str(get_procedure_date_with_time(str(row.new_procedureDate))),
-                                     'prime_time_minutes': str(row.prime_time_minutes),'non_prime_time_minutes':str(row.non_prime_time_minutes),'block_status':row.block_status },
-                            'details': {'room':row.room, 'fullName': row.fullName,'local_start_time': formatProcedureTimes(row.local_start_time),'local_end_time': formatProcedureTimes(row.local_end_time), 
-                                        'procedureName': row.procedureName,'duration':formatMinutes(row.duration),'procedureDate': str(get_procedure_date_with_time(str(row.new_procedureDate)))}
-                          } for index, row in data.iterrows()] 
-    return unit_report_hours
-
-
-def getProcedureDates(data): 
-    return data['procedureDate'].drop_duplicates().sort_values().to_list()
-
-def get_pt_hours_minutes(pt):
-    hour_minutes = pt.split(':')
-    return hour_minutes[0], hour_minutes[1]
-
-def getTimeChange(date, hour, minute): 
-    tz = pytz.timezone("US/Central")
-    new_date= tz.localize(datetime(date.year, date.month, date.day, 0), is_dst=None)                                                                           
-    total_time = int(hour)*60 + int(minute)
-    new_date = ((new_date + timedelta(minutes=total_time)))
-    return (new_date)
-
-
-
-def getPrimeTimeWithDate(date, prime_time_start, prime_time_end):
-    prime_start_hour, prime_start_minutes = get_pt_hours_minutes(prime_time_start)
-    prime_end_hour, prime_end_minutes = get_pt_hours_minutes(prime_time_end)
-    new_prime_time_start = getTimeChange(date, prime_start_hour, prime_start_minutes)
-    new_prime_time_end = getTimeChange(date,prime_end_hour, prime_end_minutes)
-    return new_prime_time_start, new_prime_time_end
-
-
-
-def get_procedures_from_date(data, date):
-    selected_date = datetime.strptime('2023-07-24', "%Y-%m-%d").date()
-    return data[data['procedureDtNoTime'] == date.date()].sort_values(by=['local_start_time'])
-
-
-def get_procedures_from_room(data, room):
-    return data[data['room'] == room].sort_values(by=['local_start_time'])
-
-def get_procedures_before_time(data, startTime):
-    return data[data['local_end_time'] < startTime].sort_values(by=['local_start_time', 'local_end_time'])
-
-def get_procedures_after_time(data, endTime):
-    return data[endTime <= data['local_start_time']].sort_values(by=['local_start_time','local_end_time'])
-
-def get_procedures_between_time(data, startTime, endTime):
-    return data[(data['local_start_time'] >= startTime ) & (data['local_end_time'] <= endTime)].sort_values(by=['local_start_time', 'local_end_time'])
-
-def get_procedures_overlap_early(data, startTime, endTime):
-    return data[(data['local_start_time'] < startTime) & (data['local_end_time'] > startTime) & (data['local_end_time']< endTime)].sort_values(by=['local_start_time', 'local_end_time'])
-
-def get_procedures_overlap_late(data,startTime, endTime):
-    return data[(data['local_start_time'] > startTime) & (data['local_start_time'] < endTime) & (data['local_end_time'] > endTime)].sort_values(by=['local_start_time','local_end_time'])
-
-def get_procedures_overlap_early_and_late(data, startTime, endTime):
-    return data[(data['local_start_time'] < startTime) & (data['local_end_time']> endTime)].sort_values(by=['local_start_time', 'local_end_time'])
-
-
-prime_time_hours_cols = ['duration', 'unit', 'procedureName', 'NPI', 'room', 'procedureDate',
-       'startTime', 'endTime', 'name', 'lastName', 'npi', 'fullName',
-       'new_procedureDate', 'local_start_time', 'local_end_time',
-       'prime_time_minutes','non_prime_time_minutes']
-
-def get_complete_overlap_procedures(procedures,hours,prime_time_start, prime_time_end):
-    overlap_procedures = get_procedures_overlap_early_and_late(procedures,prime_time_start, prime_time_end)
-    prime_time_minutes = (prime_time_end - prime_time_start).total_seconds()/60
-    if (len(overlap_procedures) > 0):
-        for index, procedure in overlap_procedures.iterrows():
-            non_prime_time_minutes =0
-            non_prime_time_minutes += (prime_time_start - procedure['local_start_time']).total_seconds()/60
-            non_prime_time_minutes += (procedure['local_end_time']- prime_time_end).total_seconds()/60
-            procedure['prime_time_minutes'] = prime_time_minutes
-            procedure['non_prime_time_minutes'] = non_prime_time_minutes
-            hours = hours.append(procedure, ignore_index=True)
-    return hours
-
-def get_overlap_early_procedures(procedures, hours, prime_time_start, prime_time_end):
-    overlap_procedures = get_procedures_overlap_early(procedures, prime_time_start,prime_time_end)
-    if (len(overlap_procedures) > 0): 
-        for index, procedure in overlap_procedures.iterrows():
-            procedure['non_prime_time_minutes'] = (prime_time_start - procedure['local_start_time']).total_seconds()/60
-            procedure['prime_time_minutes'] = (procedure['local_end_time'] - prime_time_start).total_seconds()/60
-            hours= hours.append(procedure, ignore_index=True)
-    return hours
-
-
-def get_overlap_late_procedures(procedures, hours,prime_time_start, prime_time_end):
-    overlap_procedures = get_procedures_overlap_late(procedures,prime_time_start, prime_time_end)
-    if (len(overlap_procedures) > 0): 
-        for index, procedure in overlap_procedures.iterrows():
-            procedure['prime_time_minutes'] = (prime_time_end - procedure['local_start_time']).total_seconds()/60
-            procedure['non_prime_time_minutes'] = (procedure['local_end_time'] - prime_time_end).total_seconds()/60
-            hours= hours.append(procedure, ignore_index=True)
-    return hours
-
-def get_early_procedures(procedures, hours, prime_time_start):
-    early_procedures= get_procedures_before_time(procedures, prime_time_start)
-    if (len(early_procedures) > 0): 
-        for index, procedure in early_procedures.iterrows():
-            procedure['non_prime_time_minutes'] = (procedure['local_end_time'] - procedure['local_start_time']).total_seconds()/60
-            procedure['prime_time_minutes'] = 0
-            hours= hours.append(procedure, ignore_index=True)
-    return hours
-
-def get_late_procedures(procedures, hours, prime_time_end):
-    late_procedures= get_procedures_after_time(procedures, prime_time_end)
-    if (len(late_procedures) > 0): 
-        for index, procedure in late_procedures.iterrows():
-            procedure['non_prime_time_minutes'] = (procedure['local_end_time'] - procedure['local_start_time']).total_seconds()/60
-            procedure['prime_time_minutes'] = 0
-            hours= hours.append(procedure, ignore_index=True)
-    return hours 
-
-
-def get_prime_time_procedures(procedures, hours, prime_time_start, prime_time_end):
-    prime_time_procedures= get_procedures_between_time(procedures,prime_time_start, prime_time_end)
-    if (len(prime_time_procedures) > 0): 
-        for index, procedure in prime_time_procedures.iterrows():
-            procedure['prime_time_minutes'] = (procedure['local_end_time'] - procedure['local_start_time']).total_seconds()/60
-            procedure['non_prime_time_minutes'] = 0
-            hours= hours.append(procedure, ignore_index=True)
-    return hours 
-
-
-def get_date_range(start_date):
-    start_date = get_procedure_date(start_date).date()
-    if start_date.month == 12:
-        next_month = 1
-        next_year = start_date.year +1
-    else:
-        next_month = start_date.month +1
-        next_year = start_date.year
-    end_date = date(next_year, next_month,1)
-    return start_date, end_date
-
-
-
-def get_prime_time_procedure_hours(data, prime_time_start_time, prime_time_end_time,start_date):
-    data = remove_weekends(start_date, data)
-    prime_time_hours = pd.DataFrame(columns=prime_time_hours_cols)
-    data['prime_time_minutes'] = 0
-    data['non_prime_time_minutes'] = 0
-    procedureDates = getProcedureDates(data)
-    for procedure in procedureDates:
-        prime_time_start, prime_time_end = getPrimeTimeWithDate(procedure, prime_time_start_time, prime_time_end_time)
-        procedures = get_procedures_from_date(data, procedure)
-        prime_time_hours = get_complete_overlap_procedures(procedures,prime_time_hours, prime_time_start, prime_time_end)
-        prime_time_hours = get_overlap_early_procedures(procedures, prime_time_hours,prime_time_start, prime_time_end)
-        prime_time_hours = get_overlap_late_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
-        prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
-        prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
-        prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
-    return prime_time_hours
-
-                                                                                                                     
-
-
 def get_filtered_procedures(procedures, npi_list): 
     return procedures[procedures['NPI'].isin(npi_list)]
 
 
-procedureList =[]
-
-def getEndDate(startDate):
-    if startDate.month == 12:
-        next_month = 1
-        next_year = startDate.year +1
-    else:
-        next_month = startDate.month +1
-        next_year = startDate.year
-    return date(next_year, next_month,1)
 
 
 
@@ -429,7 +226,6 @@ def get_pt_hours_async():
     pt_hours['surgeryInfo'] = get_unit_report_hours(get_prime_time_procedure_hours(procedures, prime_time_hours['start'], prime_time_hours['end'],curDate))
     pt_hours = pad_data(pt_hours,unit, curDate)
     return json.dumps (pt_hours), 200
-
 
 
 

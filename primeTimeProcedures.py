@@ -2,7 +2,7 @@ from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp
 from blockSchedule import get_block_schedule
 from gridBlockSchedule import get_grid_block_schedule
 from unitData import get_unit_data
-from datetime import date;
+from datetime import date, datetime;
 
 def getEndDate(startDate):
     if startDate.month == 12:
@@ -31,3 +31,12 @@ def getPTProcedures(startDate, unit,block_templates):
     endDate = getEndDate(startDate)
     procedures = procedures[(procedures['procedureDtNoTime']>= startDate) & (procedures['procedureDtNoTime'] < endDate)]
     return procedures
+
+
+
+def get_procedures_from_date(data, date):
+    selected_date = datetime.strptime('2023-07-24', "%Y-%m-%d").date()
+    return data[data['procedureDtNoTime'] == date.date()].sort_values(by=['local_start_time'])
+
+def get_procedures_from_room(data, room):
+    return data[data['room'] == room].sort_values(by=['local_start_time'])

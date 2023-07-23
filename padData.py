@@ -14,6 +14,19 @@ def remove_block_weekends(procedure_date, data):
     return data
 
 
+def remove_weekend(data, procedure_date):
+    return (data[data['procedureDtNoTime'] != procedure_date])
+
+def remove_weekends(start_date, data):
+    procedure_date = get_procedure_date(start_date)
+    month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
+    for date in month_dates: 
+        procedure_date = get_procedure_date(date).date()
+        if ((procedure_date.isoweekday()==6) | (procedure_date.isoweekday() == 7)):
+            data = remove_weekend(data,procedure_date)
+            continue
+    return data
+
 
 def pad_block_data(stats,start_date,unit):
     stats = remove_block_weekends(start_date, stats)
