@@ -37,7 +37,7 @@ def getReleaseDate(curday, td):
     return day
 
 def updateAutoRelease(releaseDay):
-    return releaseDay <= date.today()
+    return releaseDay.date() <= date.today()
 
 def updateManualRelease(blockDate, slotId,releaseStatus, releaseData):
     curData = pd.DataFrame(columns=manual_release_cols )
@@ -49,13 +49,12 @@ def updateManualRelease(blockDate, slotId,releaseStatus, releaseData):
 
 
 
-def create_block_schedule(startDate, data,roomLists, releaseData):
-
+def create_monthly_block_schedule(curMonth, data,roomLists, releaseData):
     block_schedule = pd.DataFrame(columns=block_search_cols)
     curWOM = 1
     c = Calendar()
     first_day_of_month = True
-    for d in [x for x in c.itermonthdates(2023, startDate.month) if x.month == startDate.month]:
+    for d in [x for x in c.itermonthdates(2023, curMonth) if x.month == curMonth]:
         curDOW = d.isoweekday()
         for roomList in roomLists: 
             for room in roomList:
@@ -81,10 +80,18 @@ def create_block_schedule(startDate, data,roomLists, releaseData):
     block_schedule['autorelease'] = block_schedule.apply(lambda row: updateAutoRelease(row['releaseDate']), axis=1)
     block_schedule['releaseStatus'] = block_schedule.apply(lambda row: updateManualRelease(row['blockDate'], row['candidateId'],row['releaseStatus'],releaseData),axis=1)
     block_schedule['manualRelease'] =block_schedule.apply(lambda row: updateManualRelease(row['blockDate'], row['candidateId'],row['releaseStatus'],releaseData),axis=1)
-    # block_schedule.to_csv('blockSchedule.csv')
-    # return block_schedule
     return block_no_release, block_schedule[block_schedule['releaseStatus'] == False]
 
-def get_block_schedule(startDate, data,roomLists): 
+def get_block_schedule(startDate,endDate, data,roomLists): 
+    final_block_schedule = pd.DataFrame()
+    final_no_release_schedule = pd.DataFrame()
     manual_release = get_manual_release()
-    return create_block_schedule(startDate,data,roomLists,manual_release)
+    for curMonth in range(startDate.month, endDate.month):
+        print('month', curMonth)
+        cur_no_release, cur_block_schedule = create_monthly_block_schedule(curMonth, data,roomLists, manual_release)
+        print(cur_no_release)
+        final_block_schedule = pd.concat([final_block_schedule, cur_block_schedule])
+        final_no_release_schedule = pd.concat([final_no_release_schedule, cur_no_release])
+        print('final', final_no_release_schedule)
+        final_no_release_schedule.append(cur_no_release)
+    return final_no_release_schedule, final_block_schedule
