@@ -38,6 +38,7 @@ def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_
     data['non_prime_time_minutes'] = 0
     prime_time_start, prime_time_end = get_pt_times (prime_time_start, prime_time_end)
     procedures = data
+    # print('procedures columns', procedures.columns)
     prime_time_hours = get_complete_overlap_procedures(procedures,prime_time_hours, prime_time_start, prime_time_end)
     prime_time_hours = get_overlap_early_procedures(procedures, prime_time_hours,prime_time_start, prime_time_end)
     prime_time_hours = get_overlap_late_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)

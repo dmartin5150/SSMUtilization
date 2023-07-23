@@ -32,6 +32,11 @@ def getPTProcedures(startDate, unit,block_templates):
     procedures = procedures[(procedures['procedureDtNoTime']>= startDate) & (procedures['procedureDtNoTime'] < endDate)]
     return procedures
 
+def getPTProcedures2(startDate, data):
+    endDate = getEndDate(startDate)
+    procedures = data[(data['procedureDtNoTime']>= startDate) & (data['procedureDtNoTime'] < endDate)]
+    return procedures
+
 
 
 def get_procedures_from_date(data, date):

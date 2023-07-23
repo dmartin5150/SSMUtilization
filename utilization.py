@@ -19,7 +19,7 @@ from gridBlockSchedule import get_grid_block_schedule
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
 from unitData2 import get_unit_data
-from primeTimeProcedures import getPTProcedures, get_filtered_procedures
+from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getPTProcedures2
 from roomDetails import get_room_details
 from padData import pad_data
 from blockStats import get_block_stats, get_block_report_hours
@@ -39,7 +39,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 block_data = pd.read_csv("blockslots.csv")
 block_data = get_block_data(block_data)
 block_templates = get_block_templates(block_data)
-startDate = get_procedure_date('2023-3-1').date()
+startDate = get_procedure_date('2023-7-1').date()
 endDate = get_procedure_date('2023-9-1').date()
 roomLists = [jriRooms,stmSTORRooms,MTORRooms]
 block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
@@ -128,7 +128,8 @@ def get_pt_hours_async():
     unit = get_data(request.json, "unit")
     curDate = get_data(request.json, "startDate")
     startDate = get_procedure_date(curDate).date()
-    procedures = getPTProcedures(startDate, unit,block_templates)
+    # procedures = getPTProcedures(startDate, unit,block_templates)
+    procedures = getPTProcedures2(startDate,dataFrameLookup[unit])
     print('curDate', curDate)
     pt_hours['surgeryInfo'] = get_unit_report_hours(get_prime_time_procedure_hours(procedures, prime_time_hours['start'], prime_time_hours['end'],curDate))
     pt_hours = pad_data(pt_hours,unit, curDate)
@@ -136,4 +137,4 @@ def get_pt_hours_async():
 
 
 
-# app.run(host='0.0.0.0', port=5001)
+app.run(host='0.0.0.0', port=5001)
