@@ -46,7 +46,8 @@ roomLists = [jriRooms,stmSTORRooms,MTORRooms]
 block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
 print('got schedule')
 print(block_no_release)
-grid_block_schedule = get_grid_block_schedule(startDate,roomLists,block_schedule)  
+grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule)  
+print('grid schedule', grid_block_schedule)
 block_owner = pd.read_csv("blockowners.csv")
 block_owner = get_block_owner(block_owner)
 
