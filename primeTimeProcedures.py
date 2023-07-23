@@ -40,3 +40,6 @@ def get_procedures_from_date(data, date):
 
 def get_procedures_from_room(data, room):
     return data[data['room'] == room].sort_values(by=['local_start_time'])
+
+def get_filtered_procedures(procedures, npi_list): 
+    return procedures[procedures['NPI'].isin(npi_list)]
