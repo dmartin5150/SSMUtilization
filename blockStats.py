@@ -29,6 +29,7 @@ def get_block_report_hours(data):
                                     'room':row.room, 'utilization':row.utilization,'bt_minutes':str(row.bt_minutes),
                                     'nbt_minutes':str(row.nbt_minutes),'total_minutes':str(row.total_minutes),
                                     'type':row.type,'blockType':row.blockType} for index, row in data.iterrows()] 
+    return block_report_hours
 
 
 

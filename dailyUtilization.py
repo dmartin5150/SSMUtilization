@@ -1,5 +1,5 @@
 from facilityconstants import primetime_minutes_per_room,orLookUp
-from utilites import get_procedure_date
+from utilities import get_procedure_date
 import json;
 
 def get_daily_utilization_per_room(room,date, data,prime_minute_per_room):

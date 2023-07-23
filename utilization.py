@@ -8,6 +8,9 @@ from flask_cors import CORS
 from calendar import Calendar, monthrange
 import re
 
+
+from dailyUtilization import get_daily_room_utilization
+from providers import get_providers
 from facilityconstants import units,jriRooms, stmSTORRooms,MTORRooms,orLookUp,primetime_minutes_per_room
 from utilities import formatProcedureTimes, formatMinutes,all_dates_current_month,get_procedure_date
 from blockData import get_block_data
@@ -23,8 +26,7 @@ from padData import pad_data
 from blockStats import get_block_stats, get_block_report_hours
 from surgeonStats import get_surgeon_stats
 from primeTimeProcedureHours import get_prime_time_procedure_hours,get_unit_report_hours
-from dailyUtilization import get_daily_room_utilization
-from providers import get_providers
+
 
 
 app = Flask(__name__)
@@ -79,6 +81,7 @@ def get_block_data_async():
     if not(selectAll):
         procedures = get_filtered_procedures(procedures, selectedProviders)
     block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
+   
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':procList}), 200
 
 
