@@ -1,19 +1,35 @@
 import pandas as pd;
 from datetime import date, timedelta;
 from calendar import Calendar
-
+from utilities import create_zulu_datetime_from_string, convert_zulu_to_central_time_from_date, get_date_from_datetime
 
 block_search_cols = [ 'candidateId', 'market', 'ministry', 'hospital', 'unit', 'room','flexId',
        'blockName', 'releaseDays', 'type','dow','wom1','wom2', 'wom3','wom4','wom5','start_time','end_time']
 
 manual_release_cols = ['ministry', 'slotId', 'startDtTm','endDtTm']
 
+
+def convert_manual_release_datetime_strings_to_dates(manual_release):
+    manual_release['blockDate'] = manual_release['startDtTm'].apply(lambda x: create_zulu_datetime_from_string(x))
+    return manual_release
+
+
+def convert_manual_release_datetime_to_central_time(manual_release):
+    manual_release['blockDate'] = manual_release['blockDate'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
+    return manual_release
+
+def convert_start_end_datetime_to_date_only(manual_release):
+    manual_release['blockDate'] = manual_release['blockDate'].apply(lambda x: get_date_from_datetime(x))
+    return manual_release
+
+
 def get_manual_release():
    
-    manual_release = pd.read_csv('blockrelease.csv', usecols=manual_release_cols, parse_dates=['startDtTm','endDtTm'])
-    manual_release['blockDate'] = manual_release['startDtTm'].apply(lambda x: x.date())
+    manual_release = pd.read_csv('blockrelease.csv', usecols=manual_release_cols)
+    manual_release = convert_manual_release_datetime_strings_to_dates(manual_release)
+    manual_release =  convert_manual_release_datetime_to_central_time(manual_release)
+    manual_release = convert_start_end_datetime_to_date_only(manual_release)
     manual_release = manual_release[(manual_release['ministry'] == 'TNNAS')]
-    manual_release.to_csv('manualRelease.csv')
     return manual_release
 
 def getReleaseDate(curday, td):

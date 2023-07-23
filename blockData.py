@@ -4,7 +4,6 @@ from utilities import get_procedure_date
 
 
 def get_num_frequencies(block_data):
-    print('type', type(block_data))
     mylist = block_data.columns.tolist()
     r = re.compile(".+blockStartDate$")
     newlist = list(filter(r.match, mylist)) # Read Note below
