@@ -1,5 +1,5 @@
 
-from datetime import date, timedelta, datetime;
+from datetime import date, timedelta, datetime, timezone;
 import pytz
 import calendar;
 
@@ -63,3 +63,12 @@ def getPrimeTimeWithDate(date, prime_time_start, prime_time_end):
     new_prime_time_start = getTimeChange(date, prime_start_hour, prime_start_minutes)
     new_prime_time_end = getTimeChange(date,prime_end_hour, prime_end_minutes)
     return new_prime_time_start, new_prime_time_end
+
+def convert_zulu_to_central_time_from_date(date):
+    return date.replace(tzinfo=timezone.utc).astimezone(pytz.timezone("US/Central"))
+
+def create_zulu_datetime_from_string(date_string):
+    return datetime.strptime(date_string,"%Y-%m-%dT%H:%M:%S.%fZ")
+
+def get_date_from_datetime(date_time):
+    return date_time.date()
