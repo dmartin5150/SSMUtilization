@@ -91,5 +91,5 @@ def get_block_schedule(startDate,endDate, data,roomLists):
         cur_no_release, cur_block_schedule = create_monthly_block_schedule(curMonth, data,roomLists, manual_release)
         final_block_schedule = pd.concat([final_block_schedule, cur_block_schedule])
         final_no_release_schedule = pd.concat([final_no_release_schedule, cur_no_release])
-        final_no_release_schedule.append(cur_no_release)
+        # final_no_release_schedule.append(cur_no_release)
     return final_no_release_schedule, final_block_schedule

@@ -24,7 +24,7 @@ from roomDetails import get_room_details
 from padData import pad_data
 from blockStats import get_block_stats, get_block_report_hours
 from surgeonStats import get_surgeon_stats
-from primeTimeProcedureHours import get_prime_time_procedure_hours,get_unit_report_hours
+from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours
 
 
 
