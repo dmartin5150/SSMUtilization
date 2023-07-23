@@ -45,7 +45,7 @@ def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_
     prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
     prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
     prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
-    return prime_time_hours
+    return prime_time_hours.sort_values(by=['local_start_time', 'local_end_time'])
 
 def get_unit_report_hours(data):
     unit_report_hours = [{'id': index,
