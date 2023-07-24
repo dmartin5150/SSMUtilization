@@ -22,7 +22,7 @@ def updateProcedureLists(curRow,unit,room, block_date, procedures,roomType,procL
             localProcList.append(curProcedure)
         blockObj ={'blockId': str(curRow['flexId']), 'blockName':curRow['blockName'], 'room':room,'unit':unit,
                    'weekday':weekday, 'blockDate':block_date.strftime("%Y-%m-%d"), 'type': bt, 'procs':localProcList,'blockType': curRow['blockType'],
-                   'start_time':str(formatProcedureTimes(get_block_date_with_time(curRow['start_time']))),'end_time':str(formatProcedureTimes(get_block_date_with_time(curRow['end_time']))),
+                   'start_time':str(formatProcedureTimes(curRow['start_time'])),'end_time':str(formatProcedureTimes(curRow['end_time'])),
                    'blockName':curRow['blockName'],
                     'releaseDate':date.strftime(curRow['releaseDate'],"%m-%d-%Y") }
 

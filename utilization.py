@@ -19,7 +19,7 @@ from gridBlockSchedule import get_grid_block_schedule
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
 from unitData2 import get_unit_data
-from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getPTProcedures2
+from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getPTProcedures2,getEndDate
 from roomDetails import get_room_details
 from padData import pad_data
 from blockStats import get_block_stats, get_block_report_hours
@@ -73,10 +73,12 @@ def get_block_data_async():
     print('curdate',curDate)
     startDate = get_procedure_date(curDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
-    procedures = getPTProcedures(startDate, unit,block_templates)
+    # procedures = getPTProcedures2(startDate, unit,block_templates)
+    procedures = getPTProcedures2(startDate,dataFrameLookup[unit])
     num_npis = get_num_npis(block_owner)
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
-    block_no_release,block_schedule = get_block_schedule(startDate, block_templates,roomLists)
+    endDate = getEndDate(startDate)
+    block_no_release,block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists)
     if not(selectAll):
         procedures = get_filtered_procedures(procedures, selectedProviders)
     block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)

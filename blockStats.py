@@ -3,15 +3,30 @@ from utilities import get_time
 from blockOwner import get_owner_npis, check_selected_npis
 from blockRoomStats import get_all_block_stats, get_in_room_block_stats,get_out_room_block_stats
 from padData import pad_block_data
+import pytz
+from datetime import date, time,datetime, timezone;
 
 
-block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType']
+block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime']
 
 def get_blocks_from_unit(block_schedule, unit):
     return block_schedule[block_schedule['unit'] == unit]
 
 
+
+def update_block_times2(data):
+    timezone = pytz.timezone("US/Central")
+    data['blockStartTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
+                          time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second))), axis=1)
+    
+    data['blockEndTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
+                          time(row['end_time'].hour, row['end_time'].minute,row['end_time'].second))),axis=1)
+    return data
+
+
+
 def update_block_times(data):
+    print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['start_time'])
     data['blockStartTime'] = data.apply(lambda row: get_time(row['blockDate'], row['start_time']), axis=1)
     data['blockEndTime'] = data.apply(lambda row: get_time(row['blockDate'], row['end_time']), axis=1)
     return data
@@ -37,7 +52,7 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
     block_stats = pd.DataFrame(columns=block_stats_cols)
     
     block_data = get_blocks_from_unit(block_schedule,unit)
-    block_data = update_block_times(block_data.copy())
+    block_data = update_block_times2(block_data.copy())
     block_dates = get_block_dates(block_data)
     block_rooms = get_block_rooms(block_data)
 

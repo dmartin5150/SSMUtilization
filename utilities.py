@@ -78,3 +78,5 @@ def get_date_from_datetime(date_time):
 
 def get_procedure_date_with_time(dt):
     return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
+
+
