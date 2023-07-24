@@ -37,6 +37,7 @@ def create_pt_compare (unitData):
                           time(x.hour, x.minute,x.second))))
     unitData['ptEnd'] = unitData['local_end_time'].apply(lambda x: timezone.localize(datetime.combine(date(2023, 1, 1), 
                           time(x.hour, x.minute,x.second))))
+    # Need to correct times where procedure start/end times cross midnight
     unitData = unitData.apply(lambda row: correct_two_day_procedures(row),axis=1)
     return unitData
 
