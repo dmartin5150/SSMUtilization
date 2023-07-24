@@ -14,10 +14,10 @@ def getEndDate(startDate):
     return date(next_year, next_month,1)
 
 def getPTProcedures(startDate, unit,block_templates):
-    
+    endDate = getEndDate(startDate)
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
-    block_no_release,block_schedule = get_block_schedule(startDate, block_templates,roomLists)
-    grid_block_schedule = get_grid_block_schedule(startDate,roomLists,block_schedule)
+    block_no_release,block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists)
+    grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule)
     
     if unit == 'BH JRI':
         print ('getting JRI data')
@@ -28,7 +28,7 @@ def getPTProcedures(startDate, unit,block_templates):
         procedures = get_unit_data('STMSTORData.csv',grid_block_schedule)
 
     procedures = procedures[procedures['room'].isin(orLookUp[unit])]
-    endDate = getEndDate(startDate)
+   
     procedures = procedures[(procedures['procedureDtNoTime']>= startDate) & (procedures['procedureDtNoTime'] < endDate)]
     return procedures
 

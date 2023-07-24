@@ -23,7 +23,12 @@ def convert_start_end_datetime_to_date_only(unitData):
     return unitData
 
 
-    
+def correct_two_day_procedures(row):
+    timezone = pytz.timezone("US/Central")
+    if (row['ptEnd'] < row['ptStart']):
+        row['ptEnd'] =  timezone.localize(datetime.combine(date(2023, 1, 2), 
+                          time(row['ptEnd'].hour, row['ptEnd'].minute,row['ptEnd'].second)))
+    return row
 
 
 def create_pt_compare (unitData):
@@ -32,6 +37,7 @@ def create_pt_compare (unitData):
                           time(x.hour, x.minute,x.second))))
     unitData['ptEnd'] = unitData['local_end_time'].apply(lambda x: timezone.localize(datetime.combine(date(2023, 1, 1), 
                           time(x.hour, x.minute,x.second))))
+    unitData = unitData.apply(lambda row: correct_two_day_procedures(row),axis=1)
     return unitData
 
 

@@ -1,11 +1,11 @@
 import pandas as pd
 
 def get_procedures_overlap_early_and_late(data, startTime, endTime):
-    return data[(data['ptStart'] < startTime) & (data['ptEnd']> endTime)].sort_values(by=['ptStart', 'ptEnd'])
+    return data[(data['ptStart'] < startTime) & (data['ptEnd']> endTime)]
 
 
 def get_procedures_overlap_early(data, startTime, endTime):
-    return data[(data['ptStart'] < startTime) & (data['ptEnd'] > startTime) & (data['ptEnd']< endTime)].sort_values(by=['ptStart', 'ptEnd'])
+    return data[(data['ptStart'] < startTime) & (data['ptEnd'] > startTime) & (data['ptEnd']< endTime)]
 
 def get_complete_overlap_procedures(procedures,hours,prime_time_start, prime_time_end):
     overlap_procedures = get_procedures_overlap_early_and_late(procedures,prime_time_start, prime_time_end)
@@ -29,7 +29,7 @@ def get_overlap_early_procedures(procedures, hours, prime_time_start, prime_time
 
 
 def get_procedures_overlap_late(data,startTime, endTime):
-    return data[(data['ptStart'] > startTime) & (data['ptStart'] < endTime) & (data['ptEnd'] > endTime)].sort_values(by=['ptStart','ptEnd'])
+    return data[(data['ptStart'] > startTime) & (data['ptStart'] < endTime) & (data['ptEnd'] > endTime)]
 
 def get_overlap_late_procedures(procedures, hours,prime_time_start, prime_time_end):
     overlap_procedures = get_procedures_overlap_late(procedures,prime_time_start, prime_time_end)
@@ -40,7 +40,7 @@ def get_overlap_late_procedures(procedures, hours,prime_time_start, prime_time_e
     return hours
 
 def get_procedures_before_time(data, startTime):
-    return data[data['ptEnd'] < startTime].sort_values(by=['ptStart', 'ptEnd'])
+    return data[data['ptEnd'] < startTime]
 
 def get_early_procedures(procedures, hours, prime_time_start):
     early_procedures= get_procedures_before_time(procedures, prime_time_start)
@@ -53,7 +53,7 @@ def get_early_procedures(procedures, hours, prime_time_start):
 def get_procedures_after_time(data, endTime):
     print('endtime', endTime)
     print('late procedures', data.columns)
-    return data[endTime <= data['ptStart']].sort_values(by=['ptStart','ptEnd'])
+    return data[endTime <= data['ptStart']]
 
 def get_late_procedures(procedures, hours, prime_time_end):
     late_procedures= get_procedures_after_time(procedures, prime_time_end)
@@ -65,7 +65,7 @@ def get_late_procedures(procedures, hours, prime_time_end):
     return hours 
 
 def get_procedures_between_time(data, startTime, endTime):
-    return data[(data['ptStart'] >= startTime ) & (data['ptEnd'] <= endTime)].sort_values(by=['ptStart', 'ptEnd'])
+    return data[(data['ptStart'] >= startTime ) & (data['ptEnd'] <= endTime)]
 
 
 def get_prime_time_procedures(procedures, hours, prime_time_start, prime_time_end):

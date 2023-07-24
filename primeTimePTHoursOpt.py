@@ -45,16 +45,16 @@ def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_
     prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
     prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
     prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
-    return prime_time_hours.sort_values(by=['local_start_time', 'local_end_time'])
+    return prime_time_hours.sort_values(by=['local_start_time', 'local_end_time','room'])
 
 def get_unit_report_hours(data):
     unit_report_hours = [{'id': index,
                           'calendar': {
                               'unit': row.unit,'NPI': row.NPI,'procedureDate': str(row.procedureDtNoTime), 
                               'room': row.room, 'prime_time_minutes': row.prime_time_minutes,'non_prime_time_minutes':row.non_prime_time_minutes, 'weekday': str(row.weekday) },
-                            'grid': {'unit': row.unit,'room': row.room,'NPI':row.NPI, 'procedureDate': str(row.procedureDate.date()),
+                            'grid': {'unit': row.unit,'room': row.room,'NPI':row.NPI, 'procedureDate': str(row.procedureDtNoTime),
                                      'prime_time_minutes': str(row.prime_time_minutes),'non_prime_time_minutes':str(row.non_prime_time_minutes),'block_status':row.block_status },
                             'details': {'room':row.room, 'fullName': row.fullName,'local_start_time': formatProcedureTimes(row.local_start_time),'local_end_time': formatProcedureTimes(row.local_end_time), 
-                                        'procedureName': row.procedureName,'duration':formatMinutes(row.duration),'procedureDate': str(row.procedureDate.date())}
+                                        'procedureName': row.procedureName,'duration':formatMinutes(row.duration),'procedureDate': str(row.procedureDtNoTime)}
                           } for index, row in data.iterrows()] 
     return unit_report_hours
