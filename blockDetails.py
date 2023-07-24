@@ -13,4 +13,4 @@ def get_block_details_data(room, blockDate, data):
     if block_data.empty:
         return []
     else:
-      return[{'name': row.blockName, 'startTime':str(formatProcedureTimes(get_block_date_with_time(row.start_time))),'endTime':str(formatProcedureTimes(get_block_date_with_time(row.end_time))),'releaseDate':date.strftime(row.releaseDate,"%m-%d-%Y")} for index, row in block_data.iterrows()]  
+      return[{'name': row.blockName, 'startTime':str(formatProcedureTimes(row.start_time)),'endTime':str(formatProcedureTimes(row.end_time)),'releaseDate':date.strftime(row.releaseDate,"%m-%d-%Y")} for index, row in block_data.iterrows()]  
