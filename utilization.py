@@ -22,7 +22,7 @@ from unitData2 import get_unit_data
 from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getEndDate
 from roomDetails import get_room_details
 from padData import pad_data
-from blockStats import get_block_stats, get_block_report_hours
+from blockStats import get_block_stats, get_block_report_hours,get_filtered_block_stats
 from surgeonStats import get_surgeon_stats
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp
@@ -88,11 +88,12 @@ def get_block_data_async():
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     endDate = getEndDate(startDate)
     block_no_release,block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists)
-    if not(selectAll):
-        procedures = get_filtered_procedures(procedures, selectedProviders)
-    block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
-    # print('procList',procList)
+    # if not(selectAll):
+    #     procedures = get_filtered_procedures(procedures, selectedProviders)
 
+    block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
+    if not(selectAll):
+        block_stats =  get_filtered_block_stats(selectedProviders,block_stats.copy(),curDate,unit)
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':procList}), 200
 
 

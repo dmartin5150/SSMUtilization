@@ -7,7 +7,7 @@ import pytz
 from datetime import date, time,datetime, timezone;
 
 
-block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime']
+block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime','npis']
 
 def get_blocks_from_unit(block_schedule, unit):
     return block_schedule[block_schedule['unit'] == unit]
@@ -35,6 +35,18 @@ def update_block_times(data):
 #     data['blockStartTime'] = data.apply(lambda row: get_time(row['blockDate'], row['start_time']), axis=1)
 #     data['blockEndTime'] = data.apply(lambda row: get_time(row['blockDate'], row['end_time']), axis=1)
 #     return data
+
+def filterBlockRow(row, surgeon_list):
+    return any(x in surgeon_list for x in row['npis'])
+
+
+def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
+    block_stats['keep'] = block_stats.apply(lambda row: filterBlockRow(row, surgeon_list),axis=1)
+    block_stats = block_stats[block_stats['keep']]
+    block_stats.drop(['keep'], axis=1, inplace=True)
+    block_stats = pad_block_data(block_stats,start_date,unit)
+    return block_stats
+
 
 
 def get_block_dates (block_schedule):

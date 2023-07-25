@@ -3,8 +3,8 @@ from datetime import  datetime;
 
 
 
-def remove_block_weekends(procedure_date, data):
-    # procedure_date = get_procedure_date(start_date)
+def remove_block_weekends(start_date, data):
+    procedure_date = get_procedure_date(start_date)
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
     for date in month_dates: 
         procedure_date = get_procedure_date(date).date()
@@ -33,8 +33,10 @@ def pad_block_data(stats,start_date,unit):
     block_dates = stats['blockDate'].apply(lambda x: x.strftime("%Y-%m-%d"))
     block_dates = block_dates.drop_duplicates().to_list()
     # print('block dates', block_dates)
-    # procedure_date = get_procedure_date(start_date)
-    procedure_date = start_date
+    procedure_date = get_procedure_date(start_date)
+    # print('procedure date', procedure_date)
+    print('stats', stats.columns)
+    # procedure_date = start_date
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
     missing_dates = list(set(month_dates).difference(block_dates))
     weekdays = []
@@ -46,9 +48,9 @@ def pad_block_data(stats,start_date,unit):
         weekdays.append(date)
         for weekday in weekdays:
             idx = len(stats) 
-            stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1']
-            stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1']
-            stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1']
+            stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1','0']
+            stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1','0']
+            stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d"),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1','0']
     return stats.sort_values(by=['blockDate'])
 
 
@@ -65,8 +67,11 @@ def pad_data(pt_hours,unit,start_date):
         if procedure['calendar']['procedureDate'] in procedure_dates:
             continue
         procedure_dates.append(procedure['calendar']['procedureDate'])
+    print('start date', start_date)
     procedure_date = get_procedure_date(start_date)
+    print('procedure date', procedure_date)
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
+    # month_dates = all_dates_current_month(start_date.month, start_date.year)
     missing_dates = list(set(month_dates).difference(procedure_dates))
     weekdays = []
     for date in missing_dates:

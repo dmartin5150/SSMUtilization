@@ -47,3 +47,5 @@ def get_procedures_from_room(data, room):
 
 def get_filtered_procedures(procedures, npi_list): 
     return procedures[procedures['NPI'].isin(npi_list)]
+
+
