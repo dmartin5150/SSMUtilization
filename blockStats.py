@@ -14,22 +14,27 @@ def get_blocks_from_unit(block_schedule, unit):
 
 
 
-def update_block_times2(data):
+
+
+
+def update_block_times(data):
+    print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
     timezone = pytz.timezone("US/Central")
     data['blockStartTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
                           time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second))), axis=1)
     
     data['blockEndTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
                           time(row['end_time'].hour, row['end_time'].minute,row['end_time'].second))),axis=1)
+    print('after', data.iloc[0]['blockEndTime'])
     return data
 
 
 
-def update_block_times(data):
-    print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['start_time'])
-    data['blockStartTime'] = data.apply(lambda row: get_time(row['blockDate'], row['start_time']), axis=1)
-    data['blockEndTime'] = data.apply(lambda row: get_time(row['blockDate'], row['end_time']), axis=1)
-    return data
+# def update_block_times(data):
+#     print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['start_time'])
+#     data['blockStartTime'] = data.apply(lambda row: get_time(row['blockDate'], row['start_time']), axis=1)
+#     data['blockEndTime'] = data.apply(lambda row: get_time(row['blockDate'], row['end_time']), axis=1)
+#     return data
 
 
 def get_block_dates (block_schedule):
@@ -52,7 +57,7 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
     block_stats = pd.DataFrame(columns=block_stats_cols)
     
     block_data = get_blocks_from_unit(block_schedule,unit)
-    block_data = update_block_times2(block_data.copy())
+    block_data = update_block_times(block_data.copy())
     block_dates = get_block_dates(block_data)
     block_rooms = get_block_rooms(block_data)
 

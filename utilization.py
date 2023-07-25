@@ -19,12 +19,13 @@ from gridBlockSchedule import get_grid_block_schedule
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
 from unitData2 import get_unit_data
-from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getPTProcedures2,getEndDate
+from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getEndDate
 from roomDetails import get_room_details
 from padData import pad_data
 from blockStats import get_block_stats, get_block_report_hours
 from surgeonStats import get_surgeon_stats
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours
+from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp
 
 
 
@@ -36,6 +37,18 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
 
+timestamp = get_file_timestamp("blockslots.csv")
+write_time_stamp('blocktimestamp.txt',timestamp)
+saved_timestamp =''
+if file_exists('blocktimestamp.txt'):
+    saved_timestamp = get_saved_timestamp('blocktimestamp.txt')
+print('saved time stamp', saved_timestamp)
+
+if (timestamp == saved_timestamp):
+    print('timestamps match')
+else:
+    print('timestamps dont match')
+
 block_data = pd.read_csv("blockslots.csv")
 block_data = get_block_data(block_data)
 block_templates = get_block_templates(block_data)
@@ -43,10 +56,7 @@ startDate = get_procedure_date('2023-7-1').date()
 endDate = get_procedure_date('2023-9-1').date()
 roomLists = [jriRooms,stmSTORRooms,MTORRooms]
 block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
-print('got schedule')
-print(block_no_release)
 grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule)  
-print('grid schedule', grid_block_schedule)
 block_owner = pd.read_csv("blockowners.csv")
 block_owner = get_block_owner(block_owner)
 
@@ -73,8 +83,7 @@ def get_block_data_async():
     print('curdate',curDate)
     startDate = get_procedure_date(curDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
-    # procedures = getPTProcedures2(startDate, unit,block_templates)
-    procedures = getPTProcedures2(startDate,dataFrameLookup[unit])
+    procedures = getPTProcedures(startDate,dataFrameLookup[unit])
     num_npis = get_num_npis(block_owner)
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     endDate = getEndDate(startDate)
@@ -82,7 +91,8 @@ def get_block_data_async():
     if not(selectAll):
         procedures = get_filtered_procedures(procedures, selectedProviders)
     block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
-   
+    # print('procList',procList)
+
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':procList}), 200
 
 
@@ -131,7 +141,7 @@ def get_pt_hours_async():
     curDate = get_data(request.json, "startDate")
     startDate = get_procedure_date(curDate).date()
     # procedures = getPTProcedures(startDate, unit,block_templates)
-    procedures = getPTProcedures2(startDate,dataFrameLookup[unit])
+    procedures = getPTProcedures(startDate,dataFrameLookup[unit])
     print('curDate', curDate)
     pt_hours['surgeryInfo'] = get_unit_report_hours(get_prime_time_procedure_hours(procedures, prime_time_hours['start'], prime_time_hours['end'],curDate))
     pt_hours = pad_data(pt_hours,unit, curDate)

@@ -1,5 +1,5 @@
 
-from datetime import date, timedelta, datetime, timezone;
+from datetime import date,time, timedelta, datetime, timezone;
 import pytz
 import calendar;
 
@@ -78,5 +78,18 @@ def get_date_from_datetime(date_time):
 
 def get_procedure_date_with_time(dt):
     return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
+
+def cast_to_cst(curDateTime):
+    timezone = pytz.timezone("US/Central")
+    return timezone.localize(datetime.combine(date(curDateTime.year, curDateTime.month, curDateTime.day), 
+                            time(curDateTime.hour, curDateTime.minute,curDateTime.second)))
+    
+
+    
+
+
+
+
+
 
 

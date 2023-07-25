@@ -1,6 +1,6 @@
 from blockData import get_num_frequencies
 import pandas as pd;
-from utilities import create_zulu_datetime_from_string, convert_zulu_to_central_time_from_date, get_date_from_datetime
+from utilities import create_zulu_datetime_from_string, convert_zulu_to_central_time_from_date, get_date_from_datetime,cast_to_cst
 
 block_search_cols = [ 'candidateId', 'market', 'ministry', 'hospital', 'unit', 'room','flexId',
        'name', 'releaseDays','blockType', 'type','dow','wom1','wom2', 'wom3','wom4','wom5','start_time','end_time',
@@ -43,6 +43,7 @@ def convert_block_datetime_strings_to_dates(block_schedule):
     return block_schedule
 
 def convert_block_datetime_to_central_time(block_schedule):
+    print('block start time', block_schedule.iloc[0]['start_time'])
     block_schedule['start_date'] = block_schedule['start_date'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     block_schedule['end_date'] = block_schedule['end_date'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     block_schedule['start_time'] = block_schedule['start_time'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
@@ -52,6 +53,15 @@ def convert_block_datetime_to_central_time(block_schedule):
 def convert_start_end_datetime_to_date_only(block_schedule):
     block_schedule['start_date'] = block_schedule['start_date'].apply(lambda x: get_date_from_datetime(x))
     block_schedule['end_date'] = block_schedule['end_date'].apply(lambda x: get_date_from_datetime(x))
+
+# slot data has start/end times listed as zulu time, but they are actually US CST
+# therefore need to cast given time as cst.  
+def cast_block_datetimes_to_cst(block_schedule):
+    block_schedule['start_date'] = block_schedule['start_date'].apply(lambda x: cast_to_cst(x))
+    block_schedule['end_date'] = block_schedule['end_date'].apply(lambda x: cast_to_cst(x))
+    block_schedule['start_time'] = block_schedule['start_time'].apply(lambda x: cast_to_cst(x))
+    block_schedule['end_time'] = block_schedule['end_time'].apply(lambda x: cast_to_cst(x))
+
 
 def create_block_templates(block_data, frequencies):
     block_data.reset_index(inplace=True)
@@ -66,7 +76,8 @@ def create_block_templates(block_data, frequencies):
             block_schedule = update_block_schedule(index, freq, cur_row, block_schedule)
             index += 1
     convert_block_datetime_strings_to_dates(block_schedule)
-    convert_block_datetime_to_central_time(block_schedule)
+    # convert_block_datetime_to_central_time(block_schedule)
+    cast_block_datetimes_to_cst(block_schedule)
     convert_start_end_datetime_to_date_only(block_schedule)
     return block_schedule[(block_schedule['state'] != 'COMPLETE')]
 
