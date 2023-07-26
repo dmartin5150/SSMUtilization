@@ -129,18 +129,22 @@ def get_block_data_async():
     # print('getting room lis')
     # roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     print('getting endate')
+    block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
+    print(block_data_string)
+    block_stats = cum_block_stats[block_data_string]
+    newProcList = cum_block_procs[block_data_string]
     endDate = getEndDate(startDate)
-    block_schedule = get_block_schedule_from_date(startDate, endDate, block_no_release,unit)
+    # block_schedule = get_block_schedule_from_date(startDate, endDate, block_no_release,unit)
     # print('getting schedule')
     # block_no_release,block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists)
     # if not(selectAll):
     #     procedures = get_filtered_procedures(procedures, selectedProviders)
     # block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
-    block_stats,newProcList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
+    # block_stats,newProcList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
     print ('stats',block_stats.columns)
     
     if not(selectAll):
-        block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),curDate,unit)
+        block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
         # print('flexIds', flexIds)
         newProcList = get_filtered_proc_list(flexIds, startDate, endDate, newProcList)
         # print(newProcList)
