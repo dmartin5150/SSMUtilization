@@ -94,16 +94,16 @@ for unit in units:
     curStartDate = startDate
     curEndDate = getEndDate(startDate)
     for x in range (startDate.month, endDate.month):
-            procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
-            cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
-            block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
-            cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
-            cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
-            next_month = get_next_month(curStartDate.month)
-            next_year = get_next_year(curStartDate.month,curStartDate.year)
-            string_date = f"{next_year}-{next_month}-1"
-            curStartDate = get_procedure_date(string_date).date()
-            curEndDate = getEndDate(curStartDate)
+        procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
+        cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
+        block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
+        cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
+        cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
+        next_month = get_next_month(curStartDate.month)
+        next_year = get_next_year(curStartDate.month,curStartDate.year)
+        string_date = f"{next_year}-{next_month}-1"
+        curStartDate = get_procedure_date(string_date).date()
+        curEndDate = getEndDate(curStartDate)
 
 print('cum blocks', cum_block_stats['7_2023_BH JRI'])
 
