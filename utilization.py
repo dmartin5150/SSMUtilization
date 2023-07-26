@@ -14,7 +14,7 @@ from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
 from utilities import get_procedure_date,get_procedure_date_with_time,create_zulu_datetime_from_string,convert_zulu_to_central_time_from_date,get_date_from_datetime
 from blockData import get_block_data
 from blockTemplates import get_block_templates
-from blockSchedule import get_block_schedule
+from blockSchedule import get_block_schedule,get_block_schedule_from_date
 from gridBlockSchedule import get_grid_block_schedule
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
@@ -56,9 +56,11 @@ startDate = get_procedure_date('2023-7-1').date()
 endDate = get_procedure_date('2023-9-1').date()
 roomLists = [jriRooms,stmSTORRooms,MTORRooms]
 block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
+
 grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule)  
 block_owner = pd.read_csv("blockowners.csv")
 block_owner = get_block_owner(block_owner)
+print ('block_owner', block_owner['ownerId'].drop_duplicates().shape)
 
 
 
@@ -83,15 +85,22 @@ def get_block_data_async():
     print('curdate',curDate)
     startDate = get_procedure_date(curDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
+    print('getting pt procedures')
     procedures = getPTProcedures(startDate,dataFrameLookup[unit])
+    print ('getting num npis')
     num_npis = get_num_npis(block_owner)
-    roomLists = [jriRooms,stmSTORRooms,MTORRooms]
+    # print('getting room lis')
+    # roomLists = [jriRooms,stmSTORRooms,MTORRooms]
+    print('getting endate')
     endDate = getEndDate(startDate)
-    block_no_release,block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists)
+    block_schedule = get_block_schedule_from_date(startDate, endDate, block_no_release,unit)
+    # print('getting schedule')
+    # block_no_release,block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists)
     # if not(selectAll):
     #     procedures = get_filtered_procedures(procedures, selectedProviders)
-
-    block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
+    # block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
+    block_stats,procList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
+    print ('stats',block_stats.columns)
     if not(selectAll):
         block_stats =  get_filtered_block_stats(selectedProviders,block_stats.copy(),curDate,unit)
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':procList}), 200

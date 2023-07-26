@@ -97,3 +97,11 @@ def get_block_schedule(startDate,endDate, data,roomLists):
         final_no_release_schedule = pd.concat([final_no_release_schedule, cur_no_release])
         # final_no_release_schedule.append(cur_no_release)
     return final_no_release_schedule, final_block_schedule
+
+
+def get_block_schedule_from_date(start_date, end_date, block_schedule, unit):
+    return block_schedule[(block_schedule['blockDate']>= start_date) & (block_schedule['blockDate'] < end_date) &
+                                (block_schedule['unit']== unit)]
+
+   
+   

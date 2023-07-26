@@ -18,7 +18,7 @@ def get_blocks_from_unit(block_schedule, unit):
 
 
 def update_block_times(data):
-    print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
+    # print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
     timezone = pytz.timezone("US/Central")
     data['blockStartTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
                           time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second))), axis=1)
@@ -44,8 +44,10 @@ def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
     block_stats['keep'] = block_stats.apply(lambda row: filterBlockRow(row, surgeon_list),axis=1)
     block_stats = block_stats[block_stats['keep']]
     block_stats.drop(['keep'], axis=1, inplace=True)
+    print('block stats pre', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
     return block_stats
+
 
 
 
@@ -68,11 +70,14 @@ def get_block_report_hours(data):
 def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,start_date,selectAll, selectedNPIs):
     block_stats = pd.DataFrame(columns=block_stats_cols)
     
+
+    print('getting data')
     block_data = get_blocks_from_unit(block_schedule,unit)
     block_data = update_block_times(block_data.copy())
     block_dates = get_block_dates(block_data)
     block_rooms = get_block_rooms(block_data)
-
+    print('got data')
+    
     procedure_list = []
     for block_date in block_dates: 
         for room in block_rooms:
@@ -81,14 +86,14 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
             for x in range(daily_block_data.shape[0]):
                 curRow = daily_block_data.iloc[x]
                 npis = get_owner_npis (block_owner, curRow['flexId'],num_npis)
-                if selectAll: 
-                    block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                elif check_selected_npis(npis, selectedNPIs):
-                    block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                    block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
+                # if selectAll: 
+                block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
+                block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
+                block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
+                # elif check_selected_npis(npis, selectedNPIs):
+                #     block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
+                #     block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
+                #     block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
 
     
     block_stats=pad_block_data(block_stats,start_date,unit)
