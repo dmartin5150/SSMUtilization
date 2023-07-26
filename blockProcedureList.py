@@ -1,4 +1,4 @@
-from utilities import formatProcedureTimes,get_block_date_with_time
+from utilities import formatProcedureTimes,get_block_date_with_time,get_procedure_date
 from datetime import date;
 
 
@@ -28,3 +28,15 @@ def updateProcedureLists(curRow,unit,room, block_date, procedures,roomType,procL
 
         procList.append(blockObj)
         return procList
+
+
+def get_filtered_proc_list(flexIds, start_date, end_date, procList):
+    filtered_list = []
+    # print(procList)
+    for flexId in flexIds: 
+        curList = [x for x in procList if ((x['blockId'] == str(flexId)) & (get_procedure_date(x['blockDate']).date()>= start_date) &
+                                           (get_procedure_date(x['blockDate']).date() < end_date))] 
+        # print('curList', curList)
+        filtered_list.extend(curList)
+    return filtered_list
+        

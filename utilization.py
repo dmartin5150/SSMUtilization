@@ -16,6 +16,7 @@ from blockData import get_block_data
 from blockTemplates import get_block_templates
 from blockSchedule import get_block_schedule,get_block_schedule_from_date
 from gridBlockSchedule import get_grid_block_schedule
+from blockProcedureList import get_filtered_proc_list
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
 from unitData2 import get_unit_data
@@ -99,11 +100,15 @@ def get_block_data_async():
     # if not(selectAll):
     #     procedures = get_filtered_procedures(procedures, selectedProviders)
     # block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
-    block_stats,procList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
+    block_stats,newProcList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
     print ('stats',block_stats.columns)
+    
     if not(selectAll):
-        block_stats =  get_filtered_block_stats(selectedProviders,block_stats.copy(),curDate,unit)
-    return json.dumps({'grid':get_block_report_hours(block_stats),'details':procList}), 200
+        block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),curDate,unit)
+        # print('flexIds', flexIds)
+        newProcList = get_filtered_proc_list(flexIds, startDate, endDate, newProcList)
+        # print(newProcList)
+    return json.dumps({'grid':get_block_report_hours(block_stats),'details':newProcList}), 200
 
 
 @app.route('/stats', methods=['POST'])
