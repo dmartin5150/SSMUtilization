@@ -100,3 +100,6 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
     block_stats=pad_block_data(block_stats,start_date,unit)
     
     return block_stats, procedure_list
+
+
+   

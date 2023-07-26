@@ -10,7 +10,7 @@ import re
 
 from dailyUtilization import get_daily_room_utilization
 from providers import get_providers
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,units
 from utilities import get_procedure_date,get_procedure_date_with_time,create_zulu_datetime_from_string,convert_zulu_to_central_time_from_date,get_date_from_datetime
 from blockData import get_block_data
 from blockTemplates import get_block_templates
@@ -64,12 +64,48 @@ block_owner = get_block_owner(block_owner)
 print ('block_owner', block_owner['ownerId'].drop_duplicates().shape)
 
 
-
-
 jriData = get_unit_data('JRIData.csv',grid_block_schedule)
 STMSTORData = get_unit_data('STMSTORData.csv',grid_block_schedule)
 MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
 dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
+num_npis = get_num_npis(block_owner)
+
+
+
+
+
+cum_block_stats = {}
+cum_block_procs = {}
+
+def get_next_month(curMonth):
+    if (curMonth != 12):
+        return curMonth + 1
+    else:
+        return 1
+    
+def get_next_year(curMonth, curYear):
+    if (curMonth != 12):
+        return curYear
+    else:
+        return curYear + 1
+
+
+for unit in units:
+    curStartDate = startDate
+    curEndDate = getEndDate(startDate)
+    for x in range (startDate.month, endDate.month):
+            procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
+            cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
+            block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
+            cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
+            cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
+            next_month = get_next_month(curStartDate.month)
+            next_year = get_next_year(curStartDate.month,curStartDate.year)
+            string_date = f"{next_year}-{next_month}-1"
+            curStartDate = get_procedure_date(string_date).date()
+            curEndDate = getEndDate(curStartDate)
+
+print('cum blocks', cum_block_stats['7_2023_BH JRI'])
 
 
 
@@ -100,7 +136,7 @@ def get_block_data_async():
     # if not(selectAll):
     #     procedures = get_filtered_procedures(procedures, selectedProviders)
     # block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
-    block_stats,newProcList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
+    block_stats,newProcList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
     print ('stats',block_stats.columns)
     
     if not(selectAll):

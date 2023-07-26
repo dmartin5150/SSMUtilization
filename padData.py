@@ -3,8 +3,8 @@ from datetime import  datetime;
 
 
 
-def remove_block_weekends(start_date, data):
-    procedure_date = get_procedure_date(start_date)
+def remove_block_weekends(procedure_date, data):
+    # procedure_date = get_procedure_date(start_date)
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
     for date in month_dates: 
         procedure_date = get_procedure_date(date).date()
@@ -28,12 +28,12 @@ def remove_weekends(start_date, data):
     return data
 
 
-def pad_block_data(stats,start_date,unit):
-    stats = remove_block_weekends(start_date, stats)
+def pad_block_data(stats,procedure_date,unit):
+    stats = remove_block_weekends(procedure_date, stats)
     block_dates = stats['blockDate'].apply(lambda x: x.strftime("%Y-%m-%d"))
     block_dates = block_dates.drop_duplicates().to_list()
     print('block dates', block_dates)
-    procedure_date = get_procedure_date(start_date)
+    # procedure_date = get_procedure_date(procedure_date)
     # print('procedure date', procedure_date)
     # procedure_date = start_date
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
