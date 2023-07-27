@@ -58,10 +58,13 @@ endDate = get_procedure_date('2023-9-1').date()
 roomLists = [jriRooms,stmSTORRooms,MTORRooms]
 block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
 
-grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule)  
+grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule) 
+block_date =  get_procedure_date('2023-8-28').date()
+# print(grid_block_schedule.columns)
+# print(grid_block_schedule[grid_block_schedule['blockDate'] == block_date])
 block_owner = pd.read_csv("blockowners.csv")
 block_owner = get_block_owner(block_owner)
-print ('block_owner', block_owner['ownerId'].drop_duplicates().shape)
+# print ('block_owner', block_owner['ownerId'].drop_duplicates().shape)
 
 
 jriData = get_unit_data('JRIData.csv',grid_block_schedule)
@@ -70,7 +73,7 @@ MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
 dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
 num_npis = get_num_npis(block_owner)
 
-
+# print(MTORData[MTORData['blockDate'] == block_date][['room','block_status']])
 
 
 
@@ -105,7 +108,7 @@ for unit in units:
         curStartDate = get_procedure_date(string_date).date()
         curEndDate = getEndDate(curStartDate)
 
-print('cum blocks', cum_block_stats['7_2023_BH JRI'])
+# print('cum blocks', cum_block_stats['7_2023_BH JRI'])
 
 
 
@@ -197,8 +200,13 @@ def get_pt_hours_async():
     startDate = get_procedure_date(curDate).date()
     # procedures = getPTProcedures(startDate, unit,block_templates)
     procedures = getPTProcedures(startDate,dataFrameLookup[unit])
-    print('curDate', curDate)
+
+    # print('curDate', curDate)
+    # print('block_status',MTORData[MTORData['blockDate'] == block_date][['room','block_status']])
+    # print(pthours.columns)
+    # print('pthours',pthours[pthours['blockDate'] == block_date][['room','block_status']])
     pt_hours['surgeryInfo'] = get_unit_report_hours(get_prime_time_procedure_hours(procedures, prime_time_hours['start'], prime_time_hours['end'],curDate))
+    # print(pt_hours)
     pt_hours = pad_data(pt_hours,unit, curDate)
     return json.dumps (pt_hours), 200
 

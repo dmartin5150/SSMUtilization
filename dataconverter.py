@@ -16,7 +16,7 @@ orLookUp = {'BH JRI': jriRooms,'STM ST OR':stmSTORRooms, 'MT OR': MTORRooms}
 
 
 baseData = pd.read_csv('AllCaseData.csv',parse_dates=['procedureDate','startTime', 'endTime'])
-print(baseData)
+# print(baseData)
 jriData = baseData[baseData['room'].isin(jriRooms)]
                 
 jriData.to_csv('JRIData.csv')
@@ -25,5 +25,5 @@ STMSTORData = baseData[baseData['room'].isin(stmSTORRooms)]
 STMSTORData.to_csv('STMSTORData.csv')
 
 MTORData = baseData[baseData['room'].isin(MTORRooms)]
-print(MTORData.shape)
+# print(MTORData.shape)
 MTORData.to_csv('MTORData.csv')

@@ -65,7 +65,7 @@ def get_unit_data(filename,grid_block_schedule):
 
 
     #add block status
-    dataWithSurgeonNames= dataWithSurgeonNames.merge(grid_block_schedule,how='left', left_on=['blockDate','room'], right_on=['blockDate','room'])
+    dataWithSurgeonNames= dataWithSurgeonNames.merge(grid_block_schedule,how='left', left_on=['procedureDtNoTime','room'], right_on=['blockDate','room'])
     dataWithSurgeonNames['weekday'] = dataWithSurgeonNames['procedureDtNoTime'].apply(lambda x: x.isoweekday())
     #remove soft blocks
     dataWithSurgeonNames = dataWithSurgeonNames[dataWithSurgeonNames['npi'] != 0]

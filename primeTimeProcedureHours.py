@@ -1,6 +1,6 @@
 import pandas as pd
 from padData import remove_weekends
-from utilities import getPrimeTimeWithDate,formatMinutes,get_procedure_date_with_time,formatProcedureTimes
+from utilities import getPrimeTimeWithDate,formatMinutes,get_procedure_date_with_time,formatProcedureTimes,get_procedure_date
 from primeTimeProcedures import get_procedures_from_date
 from overlapProcedures import get_complete_overlap_procedures,get_overlap_early_procedures,get_complete_overlap_procedures,get_overlap_late_procedures
 from overlapProcedures import get_early_procedures, get_late_procedures, get_prime_time_procedures
@@ -38,6 +38,8 @@ unit_report_hours_cols = ['duration', 'unit', 'procedureName', 'NPI', 'room', 'p
        'prime_time_minutes','non_prime_time_minutes']
 
 def get_unit_report_hours(data):
+    block_date =  get_procedure_date('2023-8-28').date()
+    print('pthours data',data[data['blockDate'] == block_date][['room','block_status']])
     unit_report_hours = [{'id': index,
                           'calendar': {
                               'unit': row.unit,'NPI': row.NPI,'procedureDate': str(row.procedureDtNoTime), 

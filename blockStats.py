@@ -25,7 +25,7 @@ def update_block_times(data):
     
     data['blockEndTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
                           time(row['end_time'].hour, row['end_time'].minute,row['end_time'].second))),axis=1)
-    print('after', data.iloc[0]['blockEndTime'])
+    # print('after', data.iloc[0]['blockEndTime'])
     return data
 
 
@@ -72,12 +72,12 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
     block_stats = pd.DataFrame(columns=block_stats_cols)
     
 
-    print('getting data')
+    # print('getting data')
     block_data = get_blocks_from_unit(block_schedule,unit)
     block_data = update_block_times(block_data.copy())
     block_dates = get_block_dates(block_data)
     block_rooms = get_block_rooms(block_data)
-    print('got data')
+    # print('got data')
     
     procedure_list = []
     for block_date in block_dates: 

@@ -22,7 +22,6 @@ def get_monthly_grid_block_schedule(curMonth,roomLists, block_schedule):
 def get_grid_block_schedule(startDate,endDate,roomLists, data): 
     final_grid_block_schedule = pd.DataFrame()
     for curMonth in range(startDate.month, endDate.month):
-        print('grid month', curMonth)
         cur_grid_schedule = get_monthly_grid_block_schedule(curMonth,roomLists, data)
         final_grid_block_schedule = pd.concat([final_grid_block_schedule, cur_grid_schedule])
     return final_grid_block_schedule
