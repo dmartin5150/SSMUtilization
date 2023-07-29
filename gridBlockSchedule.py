@@ -1,5 +1,6 @@
 from calendar import Calendar, monthrange
 import pandas as pd
+from utilities import get_procedure_date
 
 grid_block_data_cols = ['room', 'blockDate', 'block_status']
 
@@ -25,3 +26,8 @@ def get_grid_block_schedule(startDate,endDate,roomLists, data):
         cur_grid_schedule = get_monthly_grid_block_schedule(curMonth,roomLists, data)
         final_grid_block_schedule = pd.concat([final_grid_block_schedule, cur_grid_schedule])
     return final_grid_block_schedule
+
+def get_grid_block_schedule_from_file(filename):
+    grid_block_schedule = pd.read_csv(filename)
+    grid_block_schedule['blockDate'] = grid_block_schedule['blockDate'].apply(lambda x: get_procedure_date(x))
+    return grid_block_schedule

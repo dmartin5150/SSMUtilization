@@ -39,7 +39,7 @@ unit_report_hours_cols = ['duration', 'unit', 'procedureName', 'NPI', 'room', 'p
 
 def get_unit_report_hours(data):
     block_date =  get_procedure_date('2023-8-28').date()
-    print('pthours data',data[data['blockDate'] == block_date][['room','block_status']])
+    # print('pthours data',data[data['blockDate'] == block_date][['room','block_status']])
     unit_report_hours = [{'id': index,
                           'calendar': {
                               'unit': row.unit,'NPI': row.NPI,'procedureDate': str(row.procedureDtNoTime), 

@@ -9,6 +9,9 @@ def get_procedure_date(dt):
 def get_block_date_with_time(dt):
     return datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f%z')
 
+def get_block_date_with_timezone(dt):
+    return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S%f%z')
+
 def get_procedure_date_with_time(dt):
     return datetime.strptime(dt, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
 

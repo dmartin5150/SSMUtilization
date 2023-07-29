@@ -1,11 +1,14 @@
 import pandas as pd 
-from utilities import get_time
+from utilities import get_time,get_procedure_date
 from blockOwner import get_owner_npis, check_selected_npis
 from blockRoomStats import get_all_block_stats, get_in_room_block_stats,get_out_room_block_stats
 from padData import pad_block_data
 import pytz
 from datetime import date, time,datetime, timezone;
-
+from facilityconstants import units
+from primeTimeProcedures import getPTProcedures,getEndDate
+from blockSchedule import get_block_schedule,get_block_schedule_from_date
+from blockFiles import write_block_json,read_block_json
 
 block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime','npis']
 
@@ -102,4 +105,52 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
     return block_stats, procedure_list
 
 
-   
+
+
+
+def get_next_month(curMonth):
+    if (curMonth != 12):
+        return curMonth + 1
+    else:
+        return 1
+    
+def get_next_year(curMonth, curYear):
+    if (curMonth != 12):
+        return curYear
+    else:
+        return curYear + 1
+
+def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis):
+    cum_block_stats = {}
+    cum_block_procs = {}
+    for unit in units:
+        curStartDate = startDate
+        curEndDate = getEndDate(startDate)
+        for x in range (startDate.month, endDate.month):
+            procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
+            cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
+            block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
+            cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
+            cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
+            block_stats.to_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv")
+            write_block_json(cum_block_procs, f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")
+            next_month = get_next_month(curStartDate.month)
+            next_year = get_next_year(curStartDate.month,curStartDate.year)
+            string_date = f"{next_year}-{next_month}-1"
+            curStartDate = get_procedure_date(string_date).date()
+            curEndDate = getEndDate(curStartDate)
+    return cum_block_stats, cum_block_procs
+
+def get_block_stats_props_from_file(startDate,endDate):
+    cum_block_stats = {}
+    cum_block_procs = {}
+    for unit in units:
+        curStartDate = startDate
+        for x in range (startDate.month, endDate.month):
+            cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":pd.read_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv")})
+            cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":read_block_json(f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")})
+            next_month = get_next_month(curStartDate.month)
+            next_year = get_next_year(curStartDate.month,curStartDate.year)
+            string_date = f"{next_year}-{next_month}-1"
+            curStartDate = get_procedure_date(string_date).date()
+    return cum_block_stats, cum_block_procs

@@ -42,7 +42,7 @@ def get_file_timestamp(filename):
         return get_file_creation_date(filename)
     
 def write_block_json(procList, filename):
-    with open('block.json', 'w') as my_file:
+    with open(filename, 'w') as my_file:
         json.dump(procList, my_file)
 
 def read_block_json(filename):

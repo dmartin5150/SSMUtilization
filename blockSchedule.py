@@ -2,6 +2,7 @@ import pandas as pd;
 from datetime import date, timedelta;
 from calendar import Calendar
 from utilities import create_zulu_datetime_from_string, convert_zulu_to_central_time_from_date, get_date_from_datetime,cast_to_cst
+from utilities import get_block_date_with_timezone,get_procedure_date
 
 block_search_cols = [ 'candidateId', 'market', 'ministry', 'hospital', 'unit', 'room','flexId',
        'blockName', 'releaseDays', 'type','dow','wom1','wom2', 'wom3','wom4','wom5','start_time','end_time']
@@ -68,7 +69,11 @@ def create_monthly_block_schedule(curMonth, data,roomLists, releaseData):
                                         (data['wom5'] == curWOM))].copy()
                 if curData.empty:
                     continue 
-                curData['blockDate'] = d
+                curData['blockDate'] =d
+                # kurtz = curData[curData['blockName'].str.contains('Kurtz')]
+                # if not kurtz.empty:
+                #     print(d, curDOW, curWOM,room)
+                #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 block_schedule = block_schedule.append(curData)
         if ((d.isoweekday() == 6) & (first_day_of_month)):
             curWOM = 1
@@ -102,6 +107,21 @@ def get_block_schedule(startDate,endDate, data,roomLists):
 def get_block_schedule_from_date(start_date, end_date, block_schedule, unit):
     return block_schedule[(block_schedule['blockDate']>= start_date) & (block_schedule['blockDate'] < end_date) &
                                 (block_schedule['unit']== unit)]
+
+def update_time_dates_from_file(block_schedule):
+    block_schedule['start_time'] = block_schedule['start_time'].apply(lambda x: get_block_date_with_timezone(x))
+    block_schedule['end_time'] = block_schedule['end_time'].apply(lambda x: get_block_date_with_timezone(x))
+    block_schedule['start_date'] = block_schedule['start_date'].apply(lambda x: get_procedure_date(x))
+    block_schedule['end_date'] = block_schedule['end_date'].apply(lambda x: get_procedure_date(x))
+    block_schedule['blockDate'] = block_schedule['blockDate'].apply(lambda x: get_procedure_date(x))
+    block_schedule['releaseDate'] = block_schedule['releaseDate'].apply(lambda x: get_procedure_date(x))
+    return block_schedule
+
+
+def get_schedule_from_file(filename):
+    block_schedule = pd.read_csv(filename)
+    block_schedule = update_time_dates_from_file(block_schedule)
+    return block_schedule
 
    
    

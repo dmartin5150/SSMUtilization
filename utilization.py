@@ -1,32 +1,30 @@
 import pandas as pd;
-from datetime import date, timedelta, datetime, timezone;
-import calendar;
+
 import json;
-import pytz;
+
 from flask import Flask, flash, request, redirect, render_template, send_from_directory,abort
 from flask_cors import CORS
-from calendar import Calendar, monthrange
-import re
+
 
 from dailyUtilization import get_daily_room_utilization
 from providers import get_providers
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,units
-from utilities import get_procedure_date,get_procedure_date_with_time,create_zulu_datetime_from_string,convert_zulu_to_central_time_from_date,get_date_from_datetime
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
+from utilities import get_procedure_date
 from blockData import get_block_data
-from blockTemplates import get_block_templates
-from blockSchedule import get_block_schedule,get_block_schedule_from_date
-from gridBlockSchedule import get_grid_block_schedule
+from blockTemplates import get_block_templates,get_block_templates_from_file
+from blockSchedule import get_block_schedule,get_block_schedule_from_date,get_schedule_from_file
+from gridBlockSchedule import get_grid_block_schedule,get_grid_block_schedule_from_file
 from blockProcedureList import get_filtered_proc_list
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
 from unitData2 import get_unit_data
-from primeTimeProcedures import getPTProcedures, get_filtered_procedures,getEndDate
+from primeTimeProcedures import getPTProcedures,getEndDate
 from roomDetails import get_room_details
 from padData import pad_data
-from blockStats import get_block_stats, get_block_report_hours,get_filtered_block_stats
+from blockStats import  get_block_report_hours,get_filtered_block_stats,get_cum_block_stats_and_procs,get_block_stats_props_from_file
 from surgeonStats import get_surgeon_stats
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours
-from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp
+from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 
 
 
@@ -43,70 +41,76 @@ write_time_stamp('blocktimestamp.txt',timestamp)
 saved_timestamp =''
 if file_exists('blocktimestamp.txt'):
     saved_timestamp = get_saved_timestamp('blocktimestamp.txt')
-print('saved time stamp', saved_timestamp)
 
-if (timestamp == saved_timestamp):
-    print('timestamps match')
-else:
-    print('timestamps dont match')
-
-block_data = pd.read_csv("blockslots.csv")
-block_data = get_block_data(block_data)
-block_templates = get_block_templates(block_data)
+block_templates = pd.DataFrame()
 startDate = get_procedure_date('2023-7-1').date()
 endDate = get_procedure_date('2023-9-1').date()
-roomLists = [jriRooms,stmSTORRooms,MTORRooms]
-block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
-
-grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule) 
-block_date =  get_procedure_date('2023-8-28').date()
-# print(grid_block_schedule.columns)
-# print(grid_block_schedule[grid_block_schedule['blockDate'] == block_date])
-block_owner = pd.read_csv("blockowners.csv")
-block_owner = get_block_owner(block_owner)
-# print ('block_owner', block_owner['ownerId'].drop_duplicates().shape)
-
-
-jriData = get_unit_data('JRIData.csv',grid_block_schedule)
-STMSTORData = get_unit_data('STMSTORData.csv',grid_block_schedule)
-MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
-dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
+grid_block_schedule = pd.DataFrame()
+block_no_release = pd.DataFrame()
+block_schedule = pd.DataFrame()
+block_owner = pd.DataFrame()
+jriData = pd.DataFrame()
+STMSTORData = pd.DataFrame()
+MTORData = pd.DataFrame()
+dataFrameLookup = {}
 num_npis = get_num_npis(block_owner)
-
-# print(MTORData[MTORData['blockDate'] == block_date][['room','block_status']])
-
-
-
 cum_block_stats = {}
 cum_block_procs = {}
 
-def get_next_month(curMonth):
-    if (curMonth != 12):
-        return curMonth + 1
-    else:
-        return 1
-    
-def get_next_year(curMonth, curYear):
-    if (curMonth != 12):
-        return curYear
-    else:
-        return curYear + 1
+if (timestamp == saved_timestamp):
+    print('timestamps match')
+    block_templates = get_block_templates_from_file("blockTemplates.csv")
+    startDate = get_procedure_date('2023-7-1').date()
+    endDate = get_procedure_date('2023-9-1').date()
+    grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
+    block_no_release =  get_schedule_from_file('block_no_release.csv')
+    block_schedule =  get_schedule_from_file('block_release_schedule.csv')
+    block_owner = pd.read_csv('block_owner_gen.csv')
+    jriData = pd.read_csv('jri_gen_data.csv')
+    STMSTORData = pd.read_csv('stm_gen_data.csv')
+    MTORData = pd.read_csv('mt_gen_data.csv')
+    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
+    num_npis = get_num_npis(block_owner)
+    cum_block_stats, cum_block_procs = get_block_stats_props_from_file(startDate,endDate)
 
 
-for unit in units:
-    curStartDate = startDate
-    curEndDate = getEndDate(startDate)
-    for x in range (startDate.month, endDate.month):
-        procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
-        cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
-        block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
-        cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
-        cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
-        next_month = get_next_month(curStartDate.month)
-        next_year = get_next_year(curStartDate.month,curStartDate.year)
-        string_date = f"{next_year}-{next_month}-1"
-        curStartDate = get_procedure_date(string_date).date()
-        curEndDate = getEndDate(curStartDate)
+else:
+    print('timestamps dont match')
+
+    block_data = pd.read_csv("blockslots.csv")
+    block_data = get_block_data(block_data)
+    block_templates = get_block_templates(block_data)
+    block_templates.to_csv('blockTemplates.csv')
+
+    startDate = get_procedure_date('2023-7-1').date()
+    endDate = get_procedure_date('2023-9-1').date()
+    roomLists = [jriRooms,stmSTORRooms,MTORRooms]
+    block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
+    block_no_release.to_csv('block_no_release.csv')
+    block_schedule.to_csv('block_release_schedule.csv')
+
+
+    grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule) 
+    grid_block_schedule.to_csv('grid_block_schedule.csv')
+    block_date =  get_procedure_date('2023-8-28').date()
+    block_owner = pd.read_csv("blockowners.csv")
+    block_owner = get_block_owner(block_owner)
+    block_owner.to_csv('block_owner_gen.csv')
+
+
+    jriData = get_unit_data('JRIData.csv',grid_block_schedule)
+    jriData.to_csv('jri_gen_data.csv')
+    STMSTORData = get_unit_data('STMSTORData.csv',grid_block_schedule)
+    STMSTORData.to_csv('stm_gen_data.csv')
+    MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
+    MTORData.to_csv('mt_gen_data.csv')
+    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
+    num_npis = get_num_npis(block_owner)
+
+    cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
+
+print(dataFrameLookup['BH JRI'])
+
 
 # print('cum blocks', cum_block_stats['7_2023_BH JRI'])
 
@@ -133,7 +137,7 @@ def get_block_data_async():
     # roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     print('getting endate')
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
-    print(block_data_string)
+    # print(block_data_string)
     block_stats = cum_block_stats[block_data_string]
     newProcList = cum_block_procs[block_data_string]
     endDate = getEndDate(startDate)
@@ -144,7 +148,7 @@ def get_block_data_async():
     #     procedures = get_filtered_procedures(procedures, selectedProviders)
     # block_stats,procList = get_block_stats(block_no_release,block_owner,procedures, unit,num_npis,curDate,selectAll,selectedProviders)
     # block_stats,newProcList = get_block_stats(block_schedule,block_owner,procedures, unit,num_npis,startDate,selectAll,selectedProviders)
-    print ('stats',block_stats.columns)
+    # print ('stats',block_stats.columns)
     
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)

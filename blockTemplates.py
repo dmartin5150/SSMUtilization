@@ -1,6 +1,8 @@
 from blockData import get_num_frequencies
 import pandas as pd;
 from utilities import create_zulu_datetime_from_string, convert_zulu_to_central_time_from_date, get_date_from_datetime,cast_to_cst
+from utilities import get_procedure_date,get_block_date_with_timezone
+
 
 block_search_cols = [ 'candidateId', 'market', 'ministry', 'hospital', 'unit', 'room','flexId',
        'name', 'releaseDays','blockType', 'type','dow','wom1','wom2', 'wom3','wom4','wom5','start_time','end_time',
@@ -43,7 +45,7 @@ def convert_block_datetime_strings_to_dates(block_schedule):
     return block_schedule
 
 def convert_block_datetime_to_central_time(block_schedule):
-    print('block start time', block_schedule.iloc[0]['start_time'])
+    # print('block start time', block_schedule.iloc[0]['start_time'])
     block_schedule['start_date'] = block_schedule['start_date'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     block_schedule['end_date'] = block_schedule['end_date'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     block_schedule['start_time'] = block_schedule['start_time'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
@@ -86,3 +88,13 @@ def create_block_templates(block_data, frequencies):
 def get_block_templates(block_data):
     frequencies = get_num_frequencies(block_data)
     return create_block_templates(block_data,frequencies)
+
+
+def get_block_templates_from_file(filename):
+    block_templates = pd.read_csv("blockTemplates.csv")
+    block_templates['start_date'] = block_templates['start_date'].apply(lambda x: get_procedure_date(x))
+    block_templates['end_date'] = block_templates['end_date'].apply(lambda x: get_procedure_date(x))
+    block_templates['start_time'] = block_templates['start_time'].apply(lambda x: get_block_date_with_timezone(x))
+    block_templates['end_time'] = block_templates['end_time'].apply(lambda x: get_block_date_with_timezone(x))
+    return block_templates
+
