@@ -29,6 +29,18 @@ def get_pt_times (prime_time_start, prime_time_end):
                           time(pt_end_hours, pt_end_minutes,0)))
     return pt_start, pt_end
 
+# def get_pt_times2(prime_time_start, prime_time_end):
+#     pt_start_hours, pt_start_minutes = get_pt_hours_minutes(prime_time_start)
+#     # timezone = pytz.timezone("US/Central")
+#     timezone = pytz.timezone("US/Central")
+#     pt_start = timezone.localize(datetime.combine(date(2023, 1, 1), 
+#                             time(pt_start_hours, pt_start_minutes,0)))
+#     pt_end_hours, pt_end_minutes = get_pt_hours_minutes(prime_time_end)
+#     pt_end = timezone.localize(datetime.combine(date(2023, 1, 1), 
+#                             time(pt_end_hours, pt_end_minutes,0)))
+#     return pt_start, pt_end
+
+
 
 
 def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_date):

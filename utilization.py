@@ -17,7 +17,7 @@ from gridBlockSchedule import get_grid_block_schedule,get_grid_block_schedule_fr
 from blockProcedureList import get_filtered_proc_list
 from blockDetails import get_block_details_data
 from blockOwner import get_block_owner,get_num_npis
-from unitData2 import get_unit_data
+from unitData2 import get_unit_data,get_unit_data_from_file
 from primeTimeProcedures import getPTProcedures,getEndDate
 from roomDetails import get_room_details
 from padData import pad_data
@@ -66,9 +66,10 @@ if (timestamp == saved_timestamp):
     block_no_release =  get_schedule_from_file('block_no_release.csv')
     block_schedule =  get_schedule_from_file('block_release_schedule.csv')
     block_owner = pd.read_csv('block_owner_gen.csv')
-    jriData = pd.read_csv('jri_gen_data.csv')
-    STMSTORData = pd.read_csv('stm_gen_data.csv')
-    MTORData = pd.read_csv('mt_gen_data.csv')
+    jriData = get_unit_data_from_file('jri_gen_data.csv')
+    print(jriData['ptEnd'])
+    STMSTORData = get_unit_data_from_file('stm_gen_data.csv')
+    MTORData = get_unit_data_from_file('mt_gen_data.csv')
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_props_from_file(startDate,endDate)
@@ -137,9 +138,10 @@ def get_block_data_async():
     # roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     print('getting endate')
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
-    # print(block_data_string)
+    print(block_data_string)
     block_stats = cum_block_stats[block_data_string]
     newProcList = cum_block_procs[block_data_string]
+    print('new proc list', newProcList)
     endDate = getEndDate(startDate)
     # block_schedule = get_block_schedule_from_date(startDate, endDate, block_no_release,unit)
     # print('getting schedule')

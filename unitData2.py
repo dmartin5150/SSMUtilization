@@ -2,7 +2,7 @@ import pandas as pd
 from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
 import pytz;
 from datetime import date, time,datetime, timezone;
-from utilities import get_procedure_date_with_time
+from utilities import get_block_date_with_timezone,get_procedure_date,cast_to_cst
 from utilities import create_zulu_datetime_from_string_format2, convert_zulu_to_central_time_from_date, get_date_from_datetime,get_procedure_date_with_time
 
 def convert_unit_datetime_strings_to_dates(unitData):
@@ -70,3 +70,27 @@ def get_unit_data(filename,grid_block_schedule):
     #remove soft blocks
     dataWithSurgeonNames = dataWithSurgeonNames[dataWithSurgeonNames['npi'] != 0]
     return dataWithSurgeonNames
+
+
+def update_unit_date_times_from_file(unitData):
+    unitData['procedureDate'] = unitData['procedureDate'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['startTime'] = unitData['startTime'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['endTime'] = unitData['endTime'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['local_start_time'] = unitData['local_start_time'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['local_end_time'] = unitData['local_end_time'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['blockDate_x'] = unitData['blockDate_x'].apply(lambda x: get_procedure_date(x).date())
+    unitData['procedureDtNoTime'] = unitData['procedureDtNoTime'].apply(lambda x:get_procedure_date(x).date())
+    unitData['ptStart'] = unitData['ptStart'].apply(lambda x: cast_to_cst(get_block_date_with_timezone(x)))
+    unitData['ptEnd'] = unitData['ptEnd'].apply(lambda x: cast_to_cst(get_block_date_with_timezone(x)))
+    # unitData['blockDate_y'] = unitData['blockDate_y'].apply(lambda x: get_procedure_date(x))
+    return unitData
+
+    
+
+
+
+def get_unit_data_from_file(filename):
+    unitData = pd.read_csv(filename)
+    unitData = update_unit_date_times_from_file(unitData)
+    print(unitData.dtypes)
+    return unitData

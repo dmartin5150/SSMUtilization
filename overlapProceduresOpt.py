@@ -31,10 +31,18 @@ def get_overlap_early_procedures(procedures, hours, prime_time_start, prime_time
 def get_procedures_overlap_late(data,startTime, endTime):
     return data[(data['ptStart'] > startTime) & (data['ptStart'] < endTime) & (data['ptEnd'] > endTime)]
 
+def subtract_times(pt_end, row):
+    print('row', row['ptEnd'])
+    print('pt', pt_end)
+    return row['ptEnd'] - pt_end
+
 def get_overlap_late_procedures(procedures, hours,prime_time_start, prime_time_end):
     overlap_procedures = get_procedures_overlap_late(procedures.copy(),prime_time_start, prime_time_end)
     if (len(overlap_procedures) > 0): 
-        overlap_procedures['non_prime_time_minutes'] = overlap_procedures.apply(lambda row:((row['ptEnd'] - prime_time_end).total_seconds()/60),axis=1)
+        print('ptend', prime_time_end, type(prime_time_end.tzinfo))
+        print('ol',type(overlap_procedures.iloc[0]['ptEnd'].tzinfo))
+        # overlap_procedures['non_prime_time_minutes'] = overlap_procedures.apply(lambda row:((row['ptEnd'] - prime_time_end).total_seconds()/60),axis=1)
+        overlap_procedures['non_prime_time_minutes'] = overlap_procedures.apply(lambda row:((subtract_times(prime_time_end, row)).total_seconds()/60),axis=1)
         overlap_procedures['prime_time_minutes'] = overlap_procedures.apply(lambda row:((prime_time_end - row['ptStart']).total_seconds()/60),axis=1)
         hours = pd.concat([overlap_procedures, hours])
     return hours

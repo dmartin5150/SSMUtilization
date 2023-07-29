@@ -133,13 +133,22 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
             block_stats.to_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv")
-            write_block_json(cum_block_procs, f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")
+            write_block_json(newProcList, f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")
             next_month = get_next_month(curStartDate.month)
             next_year = get_next_year(curStartDate.month,curStartDate.year)
             string_date = f"{next_year}-{next_month}-1"
             curStartDate = get_procedure_date(string_date).date()
             curEndDate = getEndDate(curStartDate)
     return cum_block_stats, cum_block_procs
+
+
+def update_block_dates_from_file(df):
+    df['blockDate'] = df['blockDate'].apply(lambda x: get_procedure_date(x))
+    df['blockStartTime'] = df['blockStartTime'].apply(lambda x: get_procedure_date(x))
+    df['blockEndTime'] = df['blockEndTime'].apply(lambda x: get_procedure_date(x))
+    print(df.dtypes)
+    return df
+
 
 def get_block_stats_props_from_file(startDate,endDate):
     cum_block_stats = {}
@@ -148,6 +157,7 @@ def get_block_stats_props_from_file(startDate,endDate):
         curStartDate = startDate
         for x in range (startDate.month, endDate.month):
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":pd.read_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv")})
+            cum_block_stats[f"{curStartDate.month}_{curStartDate.year}_{unit}"] = update_block_dates_from_file(cum_block_stats[f"{curStartDate.month}_{curStartDate.year}_{unit}"]) 
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":read_block_json(f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")})
             next_month = get_next_month(curStartDate.month)
             next_year = get_next_year(curStartDate.month,curStartDate.year)
