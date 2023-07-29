@@ -47,6 +47,7 @@ def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
     block_stats['keep'] = block_stats.apply(lambda row: filterBlockRow(row, surgeon_list),axis=1)
     block_stats = block_stats[block_stats['keep']]
     block_stats = block_stats.drop(['keep'], axis=1)
+    block_stats.reset_index(inplace=True,drop=True)
     print('cur block stats', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
     flexIds = block_stats['id'].drop_duplicates()

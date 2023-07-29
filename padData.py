@@ -28,10 +28,9 @@ def remove_weekends(start_date, data):
             continue
     return data
 
-block_stats_cols2 = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime','npis']
+
 
 def pad_block_data(stats,procedure_date,unit):
-    blank_data = pd.DataFrame(columns=block_stats_cols2)
     stats = remove_block_weekends(procedure_date, stats)
     block_dates = stats['blockDate'].apply(lambda x: x.strftime("%Y-%m-%d"))
     block_dates = block_dates.drop_duplicates().to_list()
@@ -54,19 +53,13 @@ def pad_block_data(stats,procedure_date,unit):
     print('weekdays', weekdays)
     for weekday in weekdays:
         idx = len(stats) 
-        print('length', len(stats))
+        print('columns', stats.columns)
         print('weekday',weekday)
         print('idx',idx)
         print('converted', datetime.strptime(weekday, "%Y-%m-%d").date())
-        blank_data.append([idx+.25,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1','0'])
-        blank_data.append([idx+.5,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1','0'])
-        blank_data.append([idx+.75,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1','0'])
-        print('blank data', blank_data)
-        stats = pd.concat([stats, blank_data])
-        # stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1','0']
-        # stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1','0']
-        # stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1','0']
-        print('lastest date', stats.iloc[-1]['blockDate'])
+        stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1','0']
+        stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1','0']
+        stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1','0']
     print ('post', stats.sort_values(by=['blockDate']))
     return stats.sort_values(by=['blockDate'])
 
