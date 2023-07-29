@@ -43,6 +43,7 @@ if file_exists('blocktimestamp.txt'):
     saved_timestamp = get_saved_timestamp('blocktimestamp.txt')
 
 block_templates = pd.DataFrame()
+
 startDate = get_procedure_date('2023-7-1').date()
 endDate = get_procedure_date('2023-9-1').date()
 grid_block_schedule = pd.DataFrame()
@@ -57,9 +58,10 @@ num_npis = get_num_npis(block_owner)
 cum_block_stats = {}
 cum_block_procs = {}
 
-if (timestamp == saved_timestamp):
+if (timestamp != saved_timestamp):
     print('timestamps match')
     block_templates = get_block_templates_from_file("blockTemplates.csv")
+    print('block template columns', block_templates.columns)
     startDate = get_procedure_date('2023-7-1').date()
     endDate = get_procedure_date('2023-9-1').date()
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
@@ -87,6 +89,9 @@ else:
     endDate = get_procedure_date('2023-9-1').date()
     roomLists = [jriRooms,stmSTORRooms,MTORRooms]
     block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
+    kurtz = block_no_release[block_no_release['blockName'].str.contains('Kurtz')]
+    kurtz.to_csv('kurtz.csv')
+    
     block_no_release.to_csv('block_no_release.csv')
     block_schedule.to_csv('block_release_schedule.csv')
 
@@ -141,7 +146,7 @@ def get_block_data_async():
     print(block_data_string)
     block_stats = cum_block_stats[block_data_string]
     newProcList = cum_block_procs[block_data_string]
-    print('new proc list', newProcList)
+    # print('new proc list', newProcList)
     endDate = getEndDate(startDate)
     # block_schedule = get_block_schedule_from_date(startDate, endDate, block_no_release,unit)
     # print('getting schedule')

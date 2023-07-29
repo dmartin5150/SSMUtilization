@@ -78,10 +78,10 @@ def create_block_templates(block_data, frequencies):
             block_schedule = update_block_schedule(index, freq, cur_row, block_schedule)
             index += 1
     convert_block_datetime_strings_to_dates(block_schedule)
-    # convert_block_datetime_to_central_time(block_schedule)
     cast_block_datetimes_to_cst(block_schedule)
     convert_start_end_datetime_to_date_only(block_schedule)
-    return block_schedule[(block_schedule['state'] != 'COMPLETE')]
+    return block_schedule
+    # return block_schedule[(block_schedule['state'] != 'COMPLETE')]
 
 
 

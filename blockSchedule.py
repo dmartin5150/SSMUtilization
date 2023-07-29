@@ -54,26 +54,31 @@ def updateManualRelease(blockDate, slotId,releaseStatus, releaseData):
 
 
 
-def create_monthly_block_schedule(curMonth, data,roomLists, releaseData):
+def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLists, releaseData,block_change_dates):
     block_schedule = pd.DataFrame(columns=block_search_cols)
     curWOM = 1
     c = Calendar()
     first_day_of_month = True
     for d in [x for x in c.itermonthdates(2023, curMonth) if x.month == curMonth]:
+        if first_day_of_month:
+            curTemplates = update_block_templates_from_date(block_templates, d)
+        if d in block_change_dates:
+            print('date change',d)
+            curTemplates = update_block_templates_from_date(block_templates, d)
         curDOW = d.isoweekday()
         for roomList in roomLists: 
             for room in roomList:
-                curData = data[(data['room'] == room) & (data['dow']== curDOW) &
-                                        ((data['wom1'] == curWOM) | (data['wom2'] == curWOM ) |
-                                        (data['wom3'] == curWOM) | (data['wom4'] == curWOM)  |
-                                        (data['wom5'] == curWOM))].copy()
+                curData = curTemplates[(curTemplates['room'] == room) & (curTemplates['dow']== curDOW) &
+                                        ((curTemplates['wom1'] == curWOM) | (curTemplates['wom2'] == curWOM ) |
+                                        (curTemplates['wom3'] == curWOM) | (curTemplates['wom4'] == curWOM)  |
+                                        (curTemplates['wom5'] == curWOM))].copy()
                 if curData.empty:
                     continue 
                 curData['blockDate'] =d
-                # kurtz = curData[curData['blockName'].str.contains('Kurtz')]
-                # if not kurtz.empty:
-                #     print(d, curDOW, curWOM,room)
-                #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
+                kurtz = curData[curData['blockName'].str.contains('Kurtz')]
+                if not kurtz.empty:
+                    print(d, curDOW, curWOM,room)
+                    print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 block_schedule = block_schedule.append(curData)
         if ((d.isoweekday() == 6) & (first_day_of_month)):
             curWOM = 1
@@ -91,13 +96,30 @@ def create_monthly_block_schedule(curMonth, data,roomLists, releaseData):
     block_schedule['manualRelease'] =block_schedule.apply(lambda row: updateManualRelease(row['blockDate'], row['candidateId'],row['releaseStatus'],releaseData),axis=1)
     return block_no_release, block_schedule[block_schedule['releaseStatus'] == False]
 
-def get_block_schedule(startDate,endDate, data,roomLists): 
+
+def get_start_end_dates_from_templates(templates):
+    start_dates = set(templates['start_date'])
+    end_dates = set(templates['end_date'])
+    # print('start_dates', start_dates.shape)
+    # print('end_date', end_dates.shape)
+    resulting_list = list(start_dates)
+    resulting_list.extend(x for x in end_dates if x not in resulting_list)
+    return resulting_list
+
+def update_block_templates_from_date(block_templates, curDate):
+    return block_templates[(block_templates['start_date'] <= curDate) & 
+                           (block_templates['end_date'] > curDate)]
+
+
+def get_block_schedule(startDate,endDate, block_templates,roomLists): 
     final_block_schedule = pd.DataFrame()
     final_no_release_schedule = pd.DataFrame()
     manual_release = get_manual_release()
+    block_change_dates = get_start_end_dates_from_templates(block_templates)
     for curMonth in range(startDate.month, endDate.month):
+        curTemplates = update_block_templates_from_date(block_templates, startDate)
         print('month', curMonth)
-        cur_no_release, cur_block_schedule = create_monthly_block_schedule(curMonth, data,roomLists, manual_release)
+        cur_no_release, cur_block_schedule = create_monthly_block_schedule(curMonth,block_templates, curTemplates,roomLists, manual_release,block_change_dates)
         final_block_schedule = pd.concat([final_block_schedule, cur_block_schedule])
         final_no_release_schedule = pd.concat([final_no_release_schedule, cur_no_release])
         # final_no_release_schedule.append(cur_no_release)
