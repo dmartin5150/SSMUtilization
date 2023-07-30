@@ -145,5 +145,11 @@ def get_schedule_from_file(filename):
     block_schedule = update_time_dates_from_file(block_schedule)
     return block_schedule
 
+def create_block_schedules(startDate, endDate,block_templates, roomLists,bs_ouput_filename, bnr_output_filename):
+    block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
+    block_no_release.to_csv(bnr_output_filename,index=False)
+    block_schedule.to_csv(bs_ouput_filename,index=False)
+    return block_no_release, block_schedule
+
    
    

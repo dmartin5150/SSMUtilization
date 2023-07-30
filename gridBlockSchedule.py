@@ -31,3 +31,9 @@ def get_grid_block_schedule_from_file(filename):
     grid_block_schedule = pd.read_csv(filename)
     grid_block_schedule['blockDate'] = grid_block_schedule['blockDate'].apply(lambda x: get_procedure_date(x))
     return grid_block_schedule
+
+
+def create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, grid_ouput_filename):
+    grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule) 
+    grid_block_schedule.to_csv(grid_ouput_filename,index=False)
+    return grid_block_schedule

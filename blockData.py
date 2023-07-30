@@ -1,7 +1,7 @@
 from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
 import re
 from utilities import get_procedure_date
-
+import pandas as pd
 
 def get_num_frequencies(block_data):
     mylist = block_data.columns.tolist()
@@ -42,3 +42,8 @@ def get_block_data(block_data):
     block_data = block_data[(block_data['type'] == 'Surgeon') | (block_data['type'] == 'Surgical Specialty')
                             | (block_data['type'] == 'Surgeon Group')].copy()
     return block_data
+
+
+def create_block_data(filename):
+    block_data = pd.read_csv(filename)
+    return get_block_data(block_data)

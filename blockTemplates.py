@@ -65,7 +65,7 @@ def cast_block_datetimes_to_cst(block_schedule):
     block_schedule['end_time'] = block_schedule['end_time'].apply(lambda x: cast_to_cst(x))
 
 
-def create_block_templates(block_data, frequencies):
+def generate_block_templates(block_data, frequencies):
     block_data.reset_index(inplace=True)
     num_rows = block_data.shape[0]
     index= 0
@@ -87,7 +87,7 @@ def create_block_templates(block_data, frequencies):
 
 def get_block_templates(block_data):
     frequencies = get_num_frequencies(block_data)
-    return create_block_templates(block_data,frequencies)
+    return generate_block_templates(block_data,frequencies)
 
 
 def get_block_templates_from_file(filename):
@@ -96,5 +96,10 @@ def get_block_templates_from_file(filename):
     block_templates['end_date'] = block_templates['end_date'].apply(lambda x: get_procedure_date(x))
     block_templates['start_time'] = block_templates['start_time'].apply(lambda x: get_block_date_with_timezone(x))
     block_templates['end_time'] = block_templates['end_time'].apply(lambda x: get_block_date_with_timezone(x))
+    return block_templates
+
+def create_block_templates(block_data, output_filename):
+    block_templates = get_block_templates(block_data)
+    block_templates.to_csv(output_filename,index=False)
     return block_templates
 

@@ -94,3 +94,8 @@ def get_unit_data_from_file(filename):
     unitData = update_unit_date_times_from_file(unitData)
     print(unitData.dtypes)
     return unitData
+
+def create_unit_data(filename,grid_block_schedule,ud_output_filename):
+    unitData = get_unit_data(filename,grid_block_schedule)
+    unitData.to_csv(ud_output_filename,index=False)
+    return unitData

@@ -1,5 +1,5 @@
 import re
-
+import pandas as pd
 
 def fill_column(colName, value,data):
     return data.fillna({colName:value})
@@ -43,4 +43,11 @@ def create_block_owners(data, npis):
             cur_npi_list.append(int(cur_row[f'npis[{npi}]'])) 
 
     return cur_npi_list
+
+
+def create_block_owner(filename, bo_output_filename):
+    block_owner = pd.read_csv(filename)
+    block_owner = get_block_owner(block_owner)
+    block_owner.to_csv(bo_output_filename,index=False)
+    return block_owner
 
