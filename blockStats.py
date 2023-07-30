@@ -44,11 +44,15 @@ def filterBlockRow(row, surgeon_list):
 
 
 def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
+    print('unique', block_stats['npis'].drop_duplicates())
     block_stats['keep'] = block_stats.apply(lambda row: filterBlockRow(row, surgeon_list),axis=1)
+    print('filtered block stats 2', block_stats)
     block_stats = block_stats[block_stats['keep']]
+    print('filtered block stats 3', block_stats)
     block_stats = block_stats.drop(['keep'], axis=1)
+    print('filtered block stats 4', block_stats)
     block_stats.reset_index(inplace=True,drop=True)
-    print('cur block stats', block_stats)
+    print('filtered block stats', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
     flexIds = block_stats['id'].drop_duplicates()
     flexIds = [b for b in flexIds if not isinstance(b, float)]
@@ -134,7 +138,7 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
             block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
-            block_stats.to_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv")
+            block_stats.to_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv",index=False)
             write_block_json(newProcList, f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")
             next_month = get_next_month(curStartDate.month)
             next_year = get_next_year(curStartDate.month,curStartDate.year)
@@ -151,6 +155,19 @@ def update_block_dates_from_file(df):
     print(df.dtypes)
     return df
 
+def convert_npis_to_int_from_file(npis):
+    if npis[0] == '':
+        return '[0]'
+    else:
+        return [int(i) for i in npis]
+
+    
+
+def update_npi_list_from_file(df):
+    df['npis'] = df['npis'].apply(lambda x: x.strip('][').split(','))
+    df['npis'] = df['npis'].apply(lambda x: convert_npis_to_int_from_file(x))
+    return df
+
 
 def get_block_stats_props_from_file(startDate,endDate):
     cum_block_stats = {}
@@ -160,6 +177,7 @@ def get_block_stats_props_from_file(startDate,endDate):
         for x in range (startDate.month, endDate.month):
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":pd.read_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv")})
             cum_block_stats[f"{curStartDate.month}_{curStartDate.year}_{unit}"] = update_block_dates_from_file(cum_block_stats[f"{curStartDate.month}_{curStartDate.year}_{unit}"]) 
+            cum_block_stats[f"{curStartDate.month}_{curStartDate.year}_{unit}"] = update_npi_list_from_file(cum_block_stats[f"{curStartDate.month}_{curStartDate.year}_{unit}"])
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":read_block_json(f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")})
             next_month = get_next_month(curStartDate.month)
             next_year = get_next_year(curStartDate.month,curStartDate.year)

@@ -58,7 +58,7 @@ num_npis = get_num_npis(block_owner)
 cum_block_stats = {}
 cum_block_procs = {}
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     print('timestamps match')
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     print('block template columns', block_templates.columns)
@@ -83,7 +83,7 @@ else:
     block_data = pd.read_csv("blockslots.csv")
     block_data = get_block_data(block_data)
     block_templates = get_block_templates(block_data)
-    block_templates.to_csv('blockTemplates.csv')
+    block_templates.to_csv('blockTemplates.csv',index=False)
 
     startDate = get_procedure_date('2023-7-1').date()
     endDate = get_procedure_date('2023-9-1').date()
@@ -92,24 +92,24 @@ else:
     kurtz = block_no_release[block_no_release['blockName'].str.contains('Kurtz')]
     kurtz.to_csv('kurtz.csv')
     
-    block_no_release.to_csv('block_no_release.csv')
-    block_schedule.to_csv('block_release_schedule.csv')
+    block_no_release.to_csv('block_no_release.csv',index=False)
+    block_schedule.to_csv('block_release_schedule.csv',index=False)
 
 
     grid_block_schedule = get_grid_block_schedule(startDate,endDate,roomLists,block_schedule) 
-    grid_block_schedule.to_csv('grid_block_schedule.csv')
+    grid_block_schedule.to_csv('grid_block_schedule.csv',index=False)
     block_date =  get_procedure_date('2023-8-28').date()
     block_owner = pd.read_csv("blockowners.csv")
     block_owner = get_block_owner(block_owner)
-    block_owner.to_csv('block_owner_gen.csv')
+    block_owner.to_csv('block_owner_gen.csv',index=False)
 
 
     jriData = get_unit_data('JRIData.csv',grid_block_schedule)
-    jriData.to_csv('jri_gen_data.csv')
+    jriData.to_csv('jri_gen_data.csv',index=False)
     STMSTORData = get_unit_data('STMSTORData.csv',grid_block_schedule)
-    STMSTORData.to_csv('stm_gen_data.csv')
+    STMSTORData.to_csv('stm_gen_data.csv',index=False)
     MTORData = get_unit_data('MTORData.csv',grid_block_schedule)
-    MTORData.to_csv('mt_gen_data.csv')
+    MTORData.to_csv('mt_gen_data.csv',index=False)
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
     num_npis = get_num_npis(block_owner)
 
@@ -135,7 +135,8 @@ def get_block_data_async():
     print('curdate',curDate)
     startDate = get_procedure_date(curDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
-    print('getting pt procedures')
+    # sel = selectedProviders[0]
+    # print('providers sel', type(sel))
     procedures = getPTProcedures(startDate,dataFrameLookup[unit])
     print ('getting num npis')
     num_npis = get_num_npis(block_owner)
@@ -146,7 +147,7 @@ def get_block_data_async():
     print(block_data_string)
     block_stats = cum_block_stats[block_data_string]
     newProcList = cum_block_procs[block_data_string]
-    # print('new proc list', newProcList)
+    print('cur block stats', block_stats)
     endDate = getEndDate(startDate)
     # block_schedule = get_block_schedule_from_date(startDate, endDate, block_no_release,unit)
     # print('getting schedule')

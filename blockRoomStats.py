@@ -15,9 +15,12 @@ def get_block_minutes(procedures,unit, data, block_date,room,block_stats,room_ty
     return block_stats
 
 def get_all_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
+    curNpis = npis
+    if len(npis) == 0:
+        curNpis = '[0]'
     procedures = get_all_block_procedures(procedure_data,npis,block_date)
     procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'ALL',procList)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'ALL',npis)
+    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'ALL',curNpis)
 
 def get_in_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
     procedures = get_in_room_block_procedures(procedure_data,npis,block_date,room)

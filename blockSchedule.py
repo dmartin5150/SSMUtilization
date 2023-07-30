@@ -63,7 +63,7 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
         if first_day_of_month:
             curTemplates = update_block_templates_from_date(block_templates, d)
         if d in block_change_dates:
-            print('date change',d)
+            # print('date change',d)
             curTemplates = update_block_templates_from_date(block_templates, d)
         curDOW = d.isoweekday()
         for roomList in roomLists: 
@@ -76,9 +76,9 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                     continue 
                 curData['blockDate'] =d
                 kurtz = curData[curData['blockName'].str.contains('Kurtz')]
-                if not kurtz.empty:
-                    print(d, curDOW, curWOM,room)
-                    print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
+                # if not kurtz.empty:
+                #     print(d, curDOW, curWOM,room)
+                #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 block_schedule = block_schedule.append(curData)
         if ((d.isoweekday() == 6) & (first_day_of_month)):
             curWOM = 1

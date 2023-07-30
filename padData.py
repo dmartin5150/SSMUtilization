@@ -34,15 +34,15 @@ def pad_block_data(stats,procedure_date,unit):
     stats = remove_block_weekends(procedure_date, stats)
     block_dates = stats['blockDate'].apply(lambda x: x.strftime("%Y-%m-%d"))
     block_dates = block_dates.drop_duplicates().to_list()
-    print('block dates', block_dates)
+    # print('block dates', block_dates)
     # procedure_date = get_procedure_date(procedure_date)
     # print('procedure date', procedure_date)
     # procedure_date = start_date
     month_dates = all_dates_current_month(procedure_date.month, procedure_date.year)
-    print('month dates', list(set(month_dates)))
+    # print('month dates', list(set(month_dates)))
     # missing_dates = list(set(month_dates).difference(block_dates))
     missing_dates = list((x for x in month_dates if x not in block_dates))
-    print('missing_dates', missing_dates)
+    # ('missing_dates', missing_dates)
     weekdays = []
     for date in missing_dates:
         # print('missing date', date)
@@ -50,17 +50,17 @@ def pad_block_data(stats,procedure_date,unit):
         if ((curDate.isoweekday() == 6) | (curDate.isoweekday() == 7)):
             continue
         weekdays.append(date)
-    print('weekdays', weekdays)
+    # print('weekdays', weekdays)
     for weekday in weekdays:
         idx = len(stats) 
-        print('columns', stats.columns)
-        print('weekday',weekday)
-        print('idx',idx)
-        print('converted', datetime.strptime(weekday, "%Y-%m-%d").date())
+        # print('columns', stats.columns)
+        # print('weekday',weekday)
+        # print('idx',idx)
+        # print('converted', datetime.strptime(weekday, "%Y-%m-%d").date())
         stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1','0']
         stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1','0']
         stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1','0']
-    print ('post', stats.sort_values(by=['blockDate']))
+    # print ('post', stats.sort_values(by=['blockDate']))
     return stats.sort_values(by=['blockDate'])
 
 
