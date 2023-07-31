@@ -41,6 +41,29 @@ def get_pt_times (prime_time_start, prime_time_end):
 #     return pt_start, pt_end
 
 
+def generate_pt_hours(procedures,prime_time_hours, prime_time_start, prime_time_end):
+    prime_time_hours = get_complete_overlap_procedures(procedures,prime_time_hours, prime_time_start, prime_time_end)
+    prime_time_hours = get_overlap_early_procedures(procedures, prime_time_hours,prime_time_start, prime_time_end)
+    prime_time_hours = get_overlap_late_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
+    prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
+    prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
+    prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
+    return prime_time_hours
+
+def remove_weekends_procedures(data):
+    return data[(data['weekday'] != 6) & (data['weekday'] != 7)]
+
+
+
+def get_prime_time_procedures_from_range(data, prime_time_start, prime_time_end):
+    data = remove_weekends_procedures(data)
+    prime_time_hours = pd.DataFrame(columns=prime_time_hours_cols)
+    data['prime_time_minutes'] = 0
+    data['non_prime_time_minutes'] = 0
+    prime_time_start, prime_time_end = get_pt_times (prime_time_start, prime_time_end)
+    procedures = data
+    prime_time_hours = generate_pt_hours(procedures,prime_time_hours, prime_time_start, prime_time_end)
+    return prime_time_hours.sort_values(by=['local_start_time', 'local_end_time','room'])
 
 
 def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_date):
@@ -51,12 +74,13 @@ def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_
     prime_time_start, prime_time_end = get_pt_times (prime_time_start, prime_time_end)
     procedures = data
     # print('procedures columns', procedures.columns)
-    prime_time_hours = get_complete_overlap_procedures(procedures,prime_time_hours, prime_time_start, prime_time_end)
-    prime_time_hours = get_overlap_early_procedures(procedures, prime_time_hours,prime_time_start, prime_time_end)
-    prime_time_hours = get_overlap_late_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
-    prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
-    prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
-    prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
+    prime_time_hours = generate_pt_hours(procedures,prime_time_hours, prime_time_start, prime_time_end)
+    # prime_time_hours = get_complete_overlap_procedures(procedures,prime_time_hours, prime_time_start, prime_time_end)
+    # prime_time_hours = get_overlap_early_procedures(procedures, prime_time_hours,prime_time_start, prime_time_end)
+    # prime_time_hours = get_overlap_late_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
+    # prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
+    # prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
+    # prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
     return prime_time_hours.sort_values(by=['local_start_time', 'local_end_time','room'])
 
 def get_unit_report_hours(data):
@@ -70,3 +94,24 @@ def get_unit_report_hours(data):
                                         'procedureName': row.procedureName,'duration':formatMinutes(row.duration),'procedureDate': str(row.procedureDtNoTime)}
                           } for index, row in data.iterrows()] 
     return unit_report_hours
+
+
+pt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2']
+
+def get_pt_totals(data,totalPTMinutes):
+
+    pt_totals = pd.Dataframe(columns=pt_total_cols)
+    for i in range(6):
+        daily_data = data[data['weekday'] == i]
+        pt_totals.iloc[i]['date'] = 'PT Totals'
+        pt_totals.iloc[i]['dayOfWeek'] = i
+        pt_totals.iloc[i]['ptMinutes'] = data['prime_time_minutes'].sum()
+        pt_totals.iloc[i]['nonPTMinutes'] = data['non_prime_time_minutes'].sum()
+        pt_totals.iloc[i]['subHeading1'] = formatMinutes(pt_totals.iloc[i]['ptMinutes'])
+        pt_totals.iloc[i]['subHeading2'] = formatMinutes(pt_totals.iloc[i]['nonPTMinutes'])
+        pt_totals.iloc[i]['display'] = str(round(pt_totals.iloc[i]['ptMinutes']/totalPTMinutes*100,0)) +'%'
+    unit_pt_totals= [{'unit_totals': {
+                              'date': index, 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
+                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display },
+                          } for index, row in pt_totals.iterrows()] 
+    return unit_pt_totals

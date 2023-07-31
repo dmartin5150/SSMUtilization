@@ -15,8 +15,8 @@ from unitData2 import get_unit_data_from_file,create_unit_data
 from blockStats import  get_block_stats_props_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 from padData import pad_data
-from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours
-from primeTimeProcedures import getPTProcedures,getEndDate
+from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours,get_prime_time_procedures_from_range
+from primeTimeProcedures import getPTProcedures,getEndDate,getPTProceduresWithRange,getfilteredPTProcedures
 from providers import get_providers
 from roomDetails import get_room_details
 from blockDetails import get_block_details_data
@@ -94,6 +94,23 @@ def get_data(request, string):
     return data_requested
 
 
+@app.route('/utilSummary', methods=['POST'])
+def get_util_summary_async():
+    unit = get_data(request.json, "unit")
+    curStartDate = get_data(request.json, "startDate")
+    curEndDate = get_data(request.json, 'endDate')
+    selectedProviders  = get_data(request.json, "selectedProviders")
+    selectAll = get_data(request.json, "selectAll")
+    prime_time_hours = get_data(request.json, "primeTime")
+    total_pt_minutes = get_data(request.json, "totalPTMinutes")
+    procedures = getPTProceduresWithRange(curStartDate,curEndDate, dataFrameLookup[unit])
+    if not selectAll:
+        procedures = getfilteredPTProcedures(procedures, selectedProviders)
+    ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'])
+
+
+
+
 @app.route('/blocks', methods=['POST'])
 def get_block_data_async():
     unit = get_data(request.json, "unit")
@@ -158,6 +175,7 @@ def get_pt_hours_async():
     curDate = get_data(request.json, "startDate")
     startDate = get_procedure_date(curDate).date()
     procedures = getPTProcedures(startDate,dataFrameLookup[unit])
+    print('procedures', procedures.columns)
     pt_hours['surgeryInfo'] = get_unit_report_hours(get_prime_time_procedure_hours(procedures, prime_time_hours['start'], prime_time_hours['end'],curDate))
     pt_hours = pad_data(pt_hours,unit, curDate)
     return json.dumps (pt_hours), 200
