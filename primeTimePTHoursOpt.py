@@ -5,6 +5,8 @@ from overlapProceduresOpt import get_complete_overlap_procedures,get_overlap_ear
 from overlapProceduresOpt import get_early_procedures, get_late_procedures, get_prime_time_procedures
 import pytz;
 from datetime import date, time,datetime;
+from primeTimeProcedures import RoomOptions
+
 
 prime_time_hours_cols = ['duration', 'unit', 'procedureName', 'NPI', 'room', 'procedureDate',
        'startTime', 'endTime', 'name', 'lastName', 'npi', 'fullName',
@@ -28,6 +30,24 @@ def get_pt_times (prime_time_start, prime_time_end):
     pt_end = timezone.localize(datetime.combine(date(2023, 1, 1), 
                           time(pt_end_hours, pt_end_minutes,0)))
     return pt_start, pt_end
+
+def get_number_unique_rooms(procedure_rooms):
+    return procedure_rooms.drop_duplicates().shape[0]
+
+
+def get_total_pt_minutes(rooms,procedure_rooms, prime_time_hours,roomSelectionOption,selectedRooms):
+    pt_start, pt_end = get_pt_times(prime_time_hours['start'], prime_time_hours['end'])
+    pt_minutes_per_room = ((pt_end - pt_start).total_seconds())/60
+    if (roomSelectionOption == RoomOptions.All):
+        return len(rooms) * pt_minutes_per_room
+    elif (roomSelectionOption == RoomOptions.Selected):
+        return len(selectedRooms)* pt_minutes_per_room
+    else:
+        num_rooms = get_number_unique_rooms(procedure_rooms)
+        return num_rooms * pt_minutes_per_room
+
+
+
 
 # def get_pt_times2(prime_time_start, prime_time_end):
 #     pt_start_hours, pt_start_minutes = get_pt_hours_minutes(prime_time_start)
@@ -73,14 +93,7 @@ def get_prime_time_procedure_hours(data, prime_time_start, prime_time_end,start_
     data['non_prime_time_minutes'] = 0
     prime_time_start, prime_time_end = get_pt_times (prime_time_start, prime_time_end)
     procedures = data
-    # print('procedures columns', procedures.columns)
     prime_time_hours = generate_pt_hours(procedures,prime_time_hours, prime_time_start, prime_time_end)
-    # prime_time_hours = get_complete_overlap_procedures(procedures,prime_time_hours, prime_time_start, prime_time_end)
-    # prime_time_hours = get_overlap_early_procedures(procedures, prime_time_hours,prime_time_start, prime_time_end)
-    # prime_time_hours = get_overlap_late_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
-    # prime_time_hours = get_early_procedures(procedures, prime_time_hours, prime_time_start)
-    # prime_time_hours = get_late_procedures(procedures,prime_time_hours, prime_time_end)
-    # prime_time_hours = get_prime_time_procedures(procedures, prime_time_hours, prime_time_start, prime_time_end)
     return prime_time_hours.sort_values(by=['local_start_time', 'local_end_time','room'])
 
 def get_unit_report_hours(data):
@@ -101,10 +114,9 @@ pt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'su
 def get_pt_totals(data,totalPTMinutes):
 
     pt_totals = pd.Dataframe(columns=pt_total_cols)
-    for i in range(6):
-        daily_data = data[data['weekday'] == i]
+    for i in range(5):
         pt_totals.iloc[i]['date'] = 'PT Totals'
-        pt_totals.iloc[i]['dayOfWeek'] = i
+        pt_totals.iloc[i]['dayOfWeek'] = i + 1
         pt_totals.iloc[i]['ptMinutes'] = data['prime_time_minutes'].sum()
         pt_totals.iloc[i]['nonPTMinutes'] = data['non_prime_time_minutes'].sum()
         pt_totals.iloc[i]['subHeading1'] = formatMinutes(pt_totals.iloc[i]['ptMinutes'])

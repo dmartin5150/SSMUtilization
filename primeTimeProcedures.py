@@ -3,6 +3,10 @@ from blockSchedule import get_block_schedule
 from gridBlockSchedule import get_grid_block_schedule
 from unitData import get_unit_data
 from datetime import date, datetime;
+from enum import Enum
+
+
+RoomOptions = Enum('RoomOptions', ['All', 'Selected', 'Surgeon'])
 
 def getEndDate(startDate):
     if startDate.month == 12:
@@ -37,4 +41,11 @@ def get_procedures_from_room(data, room):
 def get_filtered_procedures(procedures, npi_list): 
     return procedures[procedures['NPI'].isin(npi_list)]
 
+def getfilteredRoomPTProcedures(procedures,roomSelectionOption, selectedRooms):
+     if (roomSelectionOption == RoomOptions.All):
+          return procedures
+     else:
+          return procedures[procedures['room'].isin(selectedRooms)]
+
+     
 

@@ -4,7 +4,7 @@ from flask import Flask, flash, request, redirect, render_template, send_from_di
 from flask_cors import CORS
 import json
 
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp
 from utilities import get_procedure_date
 from blockData import create_block_data
 from blockTemplates import get_block_templates_from_file, create_block_templates
@@ -16,7 +16,8 @@ from blockStats import  get_block_stats_props_from_file,get_cum_block_stats_and_
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 from padData import pad_data
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours,get_prime_time_procedures_from_range
-from primeTimeProcedures import getPTProcedures,getEndDate,getPTProceduresWithRange,getfilteredPTProcedures
+from primeTimePTHoursOpt import get_total_pt_minutes,get_pt_totals
+from primeTimeProcedures import getPTProcedures,getEndDate,getPTProceduresWithRange,getfilteredPTProcedures,getfilteredRoomPTProcedures
 from providers import get_providers
 from roomDetails import get_room_details
 from blockDetails import get_block_details_data
@@ -101,12 +102,18 @@ def get_util_summary_async():
     curEndDate = get_data(request.json, 'endDate')
     selectedProviders  = get_data(request.json, "selectedProviders")
     selectAll = get_data(request.json, "selectAll")
+    selectedRooms = get_data(request.json, "selectedRooms")
+    roomSelectionOption = get_data(request.json,'roomSelectionOption')
     prime_time_hours = get_data(request.json, "primeTime")
-    total_pt_minutes = get_data(request.json, "totalPTMinutes")
+    # total_pt_minutes = get_data(request.json, "totalPTMinutes")
     procedures = getPTProceduresWithRange(curStartDate,curEndDate, dataFrameLookup[unit])
     if not selectAll:
         procedures = getfilteredPTProcedures(procedures, selectedProviders)
-    ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'])
+    procedures = getfilteredRoomPTProcedures(procedures, roomSelectionOption, selectedRooms)
+    total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms)
+    ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'],total_pt_minutes)
+    pt_totals = get_pt_totals(ptHours,total_pt_minutes)
+    return json.dumps(pt_totals), 200
 
 
 
@@ -128,6 +135,7 @@ def get_block_data_async():
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
         newProcList = get_filtered_proc_list(flexIds, startDate, endDate, newProcList)
+    
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':newProcList}), 200
 
 
