@@ -120,7 +120,7 @@ def get_util_summary_async():
     # print('procedures3', procedures)
     total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms,curStartDate, curEndDate)
     ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'])
-    pt_totals = get_pt_totals(ptHours,total_pt_minutes,curStartDate,curEndDate)
+    pt_totals = get_pt_totals(ptHours,total_pt_minutes,curStartDate,curEndDate,roomSelectionOption,prime_time_hours)
     return json.dumps(pt_totals), 200
 
 

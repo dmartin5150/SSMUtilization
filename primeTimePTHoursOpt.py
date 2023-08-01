@@ -44,6 +44,10 @@ def get_weekdays(startDate, endDate, weekday):
     return days
 
 
+def get_pt_minutes_per_room(prime_time_hours):
+    pt_start, pt_end = get_pt_times(prime_time_hours['start'], prime_time_hours['end'])
+    return  ((pt_end - pt_start).total_seconds())/60
+
 def get_total_pt_minutes(rooms,procedure_rooms, prime_time_hours,roomSelectionOption,selectedRooms,startDate, endDate):
     pt_start, pt_end = get_pt_times(prime_time_hours['start'], prime_time_hours['end'])
     # print('pt start', pt_start),
@@ -132,21 +136,42 @@ def formatSubHeaders(title,minutes):
        h, m = divmod(minutes, 60)
        return title + ' {:d}H {:02d}M'.format(int(h), int(m))
 
+def get_total_pt_minutes_option_surgeon(pt_minutes_per_room, data):
+    procedure_dates = data['procedureDtNoTime'].drop_duplicates().to_list()
+    total_minutes = 0
+    for curDate in procedure_dates:
+        num_rooms = data[data['procedureDtNoTime'] == curDate]['room'].drop_duplicates()
+        # print('rooms', num_rooms)
+        num_rooms = num_rooms.shape[0]
+        total_minutes = total_minutes + num_rooms*pt_minutes_per_room
+        # print('num_rooms',num_rooms)
+        # print('total_minutes', total_minutes)
+        # print('curDate', curDate)
+    print('total minute', total_minutes)
+    return total_minutes
 
-def get_pt_totals(data,basePTMinutes,startDate,endDate):
+
+def get_pt_totals(data,basePTMinutes,startDate,endDate,roomOption,prime_time):
     pt_totals = pd.DataFrame(columns=pt_total_cols)
     print('data', data)
     for i in range(5):
         curData = data[data['weekday'] == (i + 1)]
-        num_days = get_weekdays(startDate,endDate,i)
-        total_pt_minutes = basePTMinutes * num_days
+        if (roomOption == 3):
+            pt_minutes_per_room = get_pt_minutes_per_room(prime_time)
+            total_pt_minutes = get_total_pt_minutes_option_surgeon(pt_minutes_per_room, curData)
+        else:
+            num_days = get_weekdays(startDate,endDate,i)
+            total_pt_minutes = basePTMinutes * num_days
         title = 'PT Totals'
         dayOfWeek = i + 1
         ptMinutes = curData['prime_time_minutes'].sum()
         nonptMinutes = curData['non_prime_time_minutes'].sum()
         subHeading1 = formatSubHeaders('PT: ',ptMinutes)
         subHeading2 = formatSubHeaders('nPT: ',nonptMinutes)
-        display = str(int(round(ptMinutes/total_pt_minutes*100,0))) +'%'
+        if total_pt_minutes == 0:
+            display = '0%'
+        else:
+            display = str(int(round(ptMinutes/total_pt_minutes*100,0))) +'%'
         pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
                           'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
 
