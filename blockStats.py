@@ -44,15 +44,15 @@ def filterBlockRow(row, surgeon_list):
 
 
 def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
-    print('unique', block_stats['npis'].drop_duplicates())
+    # print('unique', block_stats['npis'].drop_duplicates())
     block_stats['keep'] = block_stats.apply(lambda row: filterBlockRow(row, surgeon_list),axis=1)
-    print('filtered block stats 2', block_stats)
+    # print('filtered block stats 2', block_stats)
     block_stats = block_stats[block_stats['keep']]
-    print('filtered block stats 3', block_stats)
+    # print('filtered block stats 3', block_stats)
     block_stats = block_stats.drop(['keep'], axis=1)
-    print('filtered block stats 4', block_stats)
+    # print('filtered block stats 4', block_stats)
     block_stats.reset_index(inplace=True,drop=True)
-    print('filtered block stats', block_stats)
+    # print('filtered block stats', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
     flexIds = block_stats['id'].drop_duplicates()
     flexIds = [b for b in flexIds if not isinstance(b, float)]
@@ -152,7 +152,7 @@ def update_block_dates_from_file(df):
     df['blockDate'] = df['blockDate'].apply(lambda x: get_procedure_date(x))
     df['blockStartTime'] = df['blockStartTime'].apply(lambda x: get_procedure_date(x))
     df['blockEndTime'] = df['blockEndTime'].apply(lambda x: get_procedure_date(x))
-    print(df.dtypes)
+    # print(df.dtypes)
     return df
 
 def convert_npis_to_int_from_file(npis):

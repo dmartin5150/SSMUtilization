@@ -6,7 +6,7 @@ from overlapProceduresOpt import get_early_procedures, get_late_procedures, get_
 import pytz;
 from datetime import date, time,datetime;
 from primeTimeProcedures import RoomOptions
-
+from datetime import  timedelta
 
 prime_time_hours_cols = ['duration', 'unit', 'procedureName', 'NPI', 'room', 'procedureDate',
        'startTime', 'endTime', 'name', 'lastName', 'npi', 'fullName',
@@ -34,17 +34,33 @@ def get_pt_times (prime_time_start, prime_time_end):
 def get_number_unique_rooms(procedure_rooms):
     return procedure_rooms.drop_duplicates().shape[0]
 
+def get_weekdays(startDate, endDate, weekday):
+    d = endDate - startDate
+    days = 0
+    for i in range(d.days+1):
+        day = startDate + timedelta(days=i)
+        if(day.weekday() == weekday):
+            days = days + 1
+    return days
 
-def get_total_pt_minutes(rooms,procedure_rooms, prime_time_hours,roomSelectionOption,selectedRooms):
+
+def get_total_pt_minutes(rooms,procedure_rooms, prime_time_hours,roomSelectionOption,selectedRooms,startDate, endDate):
     pt_start, pt_end = get_pt_times(prime_time_hours['start'], prime_time_hours['end'])
+    # print('pt start', pt_start),
+    # print('pt_end', pt_end)
     pt_minutes_per_room = ((pt_end - pt_start).total_seconds())/60
-    if (roomSelectionOption == RoomOptions.All):
-        return len(rooms) * pt_minutes_per_room
-    elif (roomSelectionOption == RoomOptions.Selected):
-        return len(selectedRooms)* pt_minutes_per_room
+    # print('pt_minutesroom', pt_minutes_per_room)
+    # print('room selection option', roomSelectionOption, type(roomSelectionOption))
+    # print('roomoptons All', RoomOptions.All)
+    # print('rooms', rooms)
+    # print('days', days)
+    if (roomSelectionOption == 1):
+        return len(rooms) * pt_minutes_per_room 
+    elif (roomSelectionOption == 2):
+        return len(selectedRooms)* pt_minutes_per_room 
     else:
         num_rooms = get_number_unique_rooms(procedure_rooms)
-        return num_rooms * pt_minutes_per_room
+        return num_rooms * pt_minutes_per_room 
 
 
 
@@ -111,17 +127,22 @@ def get_unit_report_hours(data):
 
 pt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2']
 
-def get_pt_totals(data,totalPTMinutes):
-
-    pt_totals = pd.Dataframe(columns=pt_total_cols)
+def get_pt_totals(data,basePTMinutes,startDate,endDate):
+    pt_totals = pd.DataFrame(columns=pt_total_cols)
     for i in range(5):
-        pt_totals.iloc[i]['date'] = 'PT Totals'
-        pt_totals.iloc[i]['dayOfWeek'] = i + 1
-        pt_totals.iloc[i]['ptMinutes'] = data['prime_time_minutes'].sum()
-        pt_totals.iloc[i]['nonPTMinutes'] = data['non_prime_time_minutes'].sum()
-        pt_totals.iloc[i]['subHeading1'] = formatMinutes(pt_totals.iloc[i]['ptMinutes'])
-        pt_totals.iloc[i]['subHeading2'] = formatMinutes(pt_totals.iloc[i]['nonPTMinutes'])
-        pt_totals.iloc[i]['display'] = str(round(pt_totals.iloc[i]['ptMinutes']/totalPTMinutes*100,0)) +'%'
+        curData = data[data['weekday'] == (i + 1)]
+        num_days = get_weekdays(startDate,endDate,i)
+        total_pt_minutes = basePTMinutes * num_days
+        title = 'PT Totals'
+        dayOfWeek = i + 1
+        ptMinutes = curData['prime_time_minutes'].sum()
+        nonptMinutes = curData['non_prime_time_minutes'].sum()
+        subHeading1 = formatMinutes(ptMinutes)
+        subHeading2 = formatMinutes(nonptMinutes)
+        display = str(round(ptMinutes/total_pt_minutes*100,0)) +'%'
+        pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
+                          'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
+
     unit_pt_totals= [{'unit_totals': {
                               'date': index, 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
                               'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display },

@@ -5,8 +5,12 @@ from unitData import get_unit_data
 from datetime import date, datetime;
 from enum import Enum
 
+class RoomOptions(Enum):
+    All = 1
+    Selected = 2
+    Surgeon = 3
 
-RoomOptions = Enum('RoomOptions', ['All', 'Selected', 'Surgeon'])
+# RoomOptions = Enum('RoomOptions', ['All', 'Selected', 'Surgeon'])
 
 def getEndDate(startDate):
     if startDate.month == 12:
@@ -26,7 +30,7 @@ def getPTProcedures(startDate, data):
     return procedures
 
 def getPTProceduresWithRange(startDate, endDate, data):
-        return data[(data['procedureDtNoTime']>= startDate) & (data['procedureDtNoTime'] < endDate)]
+        return data[(data['procedureDtNoTime']>= startDate) & (data['procedureDtNoTime'] <= endDate)]
 
 def getfilteredPTProcedures(procedures, selectedProviders):
      return procedures[procedures['npi'].isin(selectedProviders)]
@@ -42,7 +46,7 @@ def get_filtered_procedures(procedures, npi_list):
     return procedures[procedures['NPI'].isin(npi_list)]
 
 def getfilteredRoomPTProcedures(procedures,roomSelectionOption, selectedRooms):
-     if (roomSelectionOption == RoomOptions.All):
+     if (roomSelectionOption == 1):
           return procedures
      else:
           return procedures[procedures['room'].isin(selectedRooms)]

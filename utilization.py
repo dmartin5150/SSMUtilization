@@ -99,7 +99,9 @@ def get_data(request, string):
 def get_util_summary_async():
     unit = get_data(request.json, "unit")
     curStartDate = get_data(request.json, "startDate")
+    curStartDate = get_procedure_date(curStartDate).date()
     curEndDate = get_data(request.json, 'endDate')
+    curEndDate = get_procedure_date(curEndDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
     selectAll = get_data(request.json, "selectAll")
     selectedRooms = get_data(request.json, "selectedRooms")
@@ -107,12 +109,15 @@ def get_util_summary_async():
     prime_time_hours = get_data(request.json, "primeTime")
     # total_pt_minutes = get_data(request.json, "totalPTMinutes")
     procedures = getPTProceduresWithRange(curStartDate,curEndDate, dataFrameLookup[unit])
+    # print('procedures1', procedures)
     if not selectAll:
         procedures = getfilteredPTProcedures(procedures, selectedProviders)
+        # print('procedures2', procedures)
     procedures = getfilteredRoomPTProcedures(procedures, roomSelectionOption, selectedRooms)
-    total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms)
-    ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'],total_pt_minutes)
-    pt_totals = get_pt_totals(ptHours,total_pt_minutes)
+    # print('procedures3', procedures)
+    total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms,curStartDate, curEndDate)
+    ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'])
+    pt_totals = get_pt_totals(ptHours,total_pt_minutes,curStartDate,curEndDate)
     return json.dumps(pt_totals), 200
 
 
