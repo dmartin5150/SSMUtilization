@@ -127,8 +127,15 @@ def get_unit_report_hours(data):
 
 pt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2']
 
+
+def formatSubHeaders(title,minutes):
+       h, m = divmod(minutes, 60)
+       return title + ' {:d}H {:02d}M'.format(int(h), int(m))
+
+
 def get_pt_totals(data,basePTMinutes,startDate,endDate):
     pt_totals = pd.DataFrame(columns=pt_total_cols)
+    print('data', data)
     for i in range(5):
         curData = data[data['weekday'] == (i + 1)]
         num_days = get_weekdays(startDate,endDate,i)
@@ -137,8 +144,8 @@ def get_pt_totals(data,basePTMinutes,startDate,endDate):
         dayOfWeek = i + 1
         ptMinutes = curData['prime_time_minutes'].sum()
         nonptMinutes = curData['non_prime_time_minutes'].sum()
-        subHeading1 = formatMinutes(ptMinutes)
-        subHeading2 = formatMinutes(nonptMinutes)
+        subHeading1 = formatSubHeaders('PT: ',ptMinutes)
+        subHeading2 = formatSubHeaders('nPT: ',nonptMinutes)
         display = str(int(round(ptMinutes/total_pt_minutes*100,0))) +'%'
         pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
                           'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)

@@ -45,8 +45,12 @@ def get_procedures_from_room(data, room):
 def get_filtered_procedures(procedures, npi_list): 
     return procedures[procedures['NPI'].isin(npi_list)]
 
+
+
+
+
 def getfilteredRoomPTProcedures(procedures,roomSelectionOption, selectedRooms):
-     if (roomSelectionOption == 1):
+     if ((roomSelectionOption == 1) | (roomSelectionOption == 3)):
           return procedures
      else:
           return procedures[procedures['room'].isin(selectedRooms)]

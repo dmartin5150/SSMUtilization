@@ -13,6 +13,7 @@ from gridBlockSchedule import get_grid_block_schedule_from_file,create_grid_bloc
 from blockOwner import get_num_npis,create_block_owner
 from unitData2 import get_unit_data_from_file,create_unit_data
 from blockStats import  get_block_stats_props_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
+from blockStats import convert_npis_to_int_from_file
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 from padData import pad_data
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours,get_prime_time_procedures_from_range
@@ -103,16 +104,18 @@ def get_util_summary_async():
     curEndDate = get_data(request.json, 'endDate')
     curEndDate = get_procedure_date(curEndDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
+    selectedProviders = [int(i) for i in selectedProviders]
+    print('selected providers', selectedProviders)
     selectAll = get_data(request.json, "selectAll")
     selectedRooms = get_data(request.json, "selectedRooms")
     roomSelectionOption = get_data(request.json,'roomSelectionOption')
     prime_time_hours = get_data(request.json, "primeTime")
     # total_pt_minutes = get_data(request.json, "totalPTMinutes")
     procedures = getPTProceduresWithRange(curStartDate,curEndDate, dataFrameLookup[unit])
-    # print('procedures1', procedures)
+    print('procedures1', procedures)
     if not selectAll:
         procedures = getfilteredPTProcedures(procedures, selectedProviders)
-        # print('procedures2', procedures)
+        print('procedures2', procedures)
     procedures = getfilteredRoomPTProcedures(procedures, roomSelectionOption, selectedRooms)
     # print('procedures3', procedures)
     total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms,curStartDate, curEndDate)
