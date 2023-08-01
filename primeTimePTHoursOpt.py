@@ -143,7 +143,7 @@ def get_pt_totals(data,basePTMinutes,startDate,endDate):
         pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
                           'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
 
-    unit_pt_totals= [{'date': index, 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
+    unit_pt_totals= [{'date': 'PT TOTALS', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
                               'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
                           for index, row in pt_totals.iterrows()] 
     return unit_pt_totals
