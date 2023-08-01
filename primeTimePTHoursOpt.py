@@ -139,12 +139,11 @@ def get_pt_totals(data,basePTMinutes,startDate,endDate):
         nonptMinutes = curData['non_prime_time_minutes'].sum()
         subHeading1 = formatMinutes(ptMinutes)
         subHeading2 = formatMinutes(nonptMinutes)
-        display = str(round(ptMinutes/total_pt_minutes*100,0)) +'%'
+        display = str(int(round(ptMinutes/total_pt_minutes*100,0))) +'%'
         pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
                           'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
 
-    unit_pt_totals= [{'unit_totals': {
-                              'date': index, 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
-                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display },
-                          } for index, row in pt_totals.iterrows()] 
+    unit_pt_totals= [{'date': index, 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
+                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
+                          for index, row in pt_totals.iterrows()] 
     return unit_pt_totals
