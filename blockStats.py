@@ -187,8 +187,8 @@ def get_block_stats_props_from_file(startDate,endDate):
     return cum_block_stats, cum_block_procs
 
 def add_block_date(block_stats):
-    block_stats['blockProcedureDate'] = block_stats['blockDate'].apply(lambda x: x.date())
-    block_stats['weekday'] = block_stats['blockProcedureDate'].apply(lambda x: x.isoweekday())
+    block_stats['blockDate'] = block_stats['blockDate'].apply(lambda x: x.date())
+    block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
     print('dates',block_stats['weekday'])
     return block_stats
 
@@ -203,12 +203,14 @@ def add_block_date(block_stats):
 
 
 
-def get_block_filtered_by_date(curStartDate, curEndDate, block_stats):
+def get_block_filtered_by_date(curStartDate, curEndDate, block_stats,selectAll):
     # print('start date type', curStartDate)
     # print('enddate', curEndDate)
-    block_stats = add_block_date(block_stats)
+    if selectAll:
+        block_stats = add_block_date(block_stats)
+    block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
     # print('block stats', block_stats)
-    block_stats = block_stats[(block_stats['blockProcedureDate'] >= curStartDate) & (block_stats['blockProcedureDate'] <= curEndDate)]
+    block_stats = block_stats[(block_stats['blockDate'] >= curStartDate) & (block_stats['blockDate'] <= curEndDate)]
     # block_stats = block_stats.drop(['blockProcedureDate'], axis=1)
     # block_stats.reset_index(inplace=True,drop=True)
     # print('block stats 2', block_stats)

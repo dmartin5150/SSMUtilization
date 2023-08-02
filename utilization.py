@@ -140,11 +140,12 @@ def get_block_totals_async():
     # block_stats = cum_block_stats[block_data_string]
     # block_stats = add_block_date(block_stats)
     # print('block stats pre', block_stats)
-    block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats)
+    # block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats)
     print('block stats post', block_stats['npis'])
     print('got block stats')
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
+    block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats,selectAll)
     block_totals = get_block_summary(block_stats)
     return json.dumps(block_totals), 200
 
