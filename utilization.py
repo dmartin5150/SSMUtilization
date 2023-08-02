@@ -13,7 +13,7 @@ from gridBlockSchedule import get_grid_block_schedule_from_file,create_grid_bloc
 from blockOwner import get_num_npis,create_block_owner
 from unitData2 import get_unit_data_from_file,create_unit_data
 from blockStats import  get_block_stats_props_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
-from blockStats import convert_npis_to_int_from_file
+from blockStats import convert_npis_to_int_from_file,get_block_filtered_by_date,get_block_summary
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 from padData import pad_data
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours,get_prime_time_procedures_from_range
@@ -124,6 +124,22 @@ def get_util_summary_async():
     return json.dumps(pt_totals), 200
 
 
+@app.route('/blocktotals', methods=['POST'])
+def get_block_totals_async():
+    unit = get_data(request.json, "unit")
+    selectAll = get_data(request.json, "selectAll")
+    curStartDate = get_data(request.json, "startDate")
+    curEndDate = get_data(request.json, "endDate")
+    curStartDate = get_procedure_date(curStartDate).date()
+    curEndDate = get_procedure_date(curEndDate).date()
+    selectedProviders  = get_data(request.json, "selectedProviders")
+    block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
+    block_stats = cum_block_stats[block_data_string]
+    block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats)
+    if not(selectAll):
+        block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
+    block_totals = get_block_summary(block_stats)
+    return json.dumps(block_totals), 200
 
 
 @app.route('/blocks', methods=['POST'])
@@ -143,7 +159,7 @@ def get_block_data_async():
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
         newProcList = get_filtered_proc_list(flexIds, startDate, endDate, newProcList)
-    
+    print('block columns', block_stats.columns)
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':newProcList}), 200
 
 

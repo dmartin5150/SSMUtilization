@@ -184,3 +184,41 @@ def get_block_stats_props_from_file(startDate,endDate):
             string_date = f"{next_year}-{next_month}-1"
             curStartDate = get_procedure_date(string_date).date()
     return cum_block_stats, cum_block_procs
+
+
+def addWeekdays(block_stats):
+    block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
+    return block_stats
+
+
+def get_block_filtered_by_date(curStartDate, curEndDate, block_stats):
+    return block_stats[(block_stats['blockDate'] >= curStartDate) & (block_stats['blockDate'] <= curEndDate)]
+
+
+
+def formatBlockSubHeaders(title,minutes):
+       h, m = divmod(minutes, 60)
+       return title + ' {:d}H {:02d}M'.format(int(h), int(m))
+
+
+bt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2']
+
+def get_block_summary(block_data):
+    bt_totals= pd.DataFrame(columns=bt_total_cols)
+    block_data = addWeekdays(block_data)
+    for i in range(5):
+        curData = block_data[block_data['weekday'] == (i + 1)]
+        total_minutes = curData['total_minutes'].sum()
+        title = 'Block Totals'
+        dayOfWeek = i + 1
+        ptMinutes = curData['bt_minutes'].sum()
+        nonptMinutes = curData['nbt_minutes'].sum()
+        subHeading1 = formatBlockSubHeaders('BT: ',ptMinutes)
+        subHeading2 = formatBlockSubHeaders('nBT: ',nonptMinutes)
+        if total_minutes == 0:
+            display = '0%'
+        else:
+            display = str(int(round(ptMinutes/total_minutes*100,0))) +'%'
+        bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
+                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
+        return bt_totals

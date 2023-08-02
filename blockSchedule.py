@@ -110,6 +110,10 @@ def update_block_templates_from_date(block_templates, curDate):
     return block_templates[(block_templates['start_date'] <= curDate) & 
                            (block_templates['end_date'] > curDate)]
 
+def addWeekday(block_schedule):
+    block_schedule['weekday'] = block_schedule['blockDate'].apply(lambda x: x.isoweekday())
+    return block_schedule
+
 
 def get_block_schedule(startDate,endDate, block_templates,roomLists): 
     final_block_schedule = pd.DataFrame()
