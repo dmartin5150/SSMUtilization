@@ -189,7 +189,7 @@ def get_block_stats_props_from_file(startDate,endDate):
 def add_block_date(block_stats):
     block_stats['blockDate'] = block_stats['blockDate'].apply(lambda x: x.date())
     block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
-    print('dates',block_stats['weekday'])
+    # print('dates',block_stats['weekday'])
     return block_stats
 
 
@@ -226,13 +226,13 @@ def formatBlockSubHeaders(title,minutes):
        return title + ' {:d}H {:02d}M'.format(int(h), int(m))
 
 
-bt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2']
+bt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2','type']
 
 
 
 
-def get_block_summary(block_data,bt_totals, block_type):
-    block_data = block_data[block_data['type'] == block_type]
+def get_block_summary(block_data,bt_totals, room_type,block_type):
+    block_data = block_data[(block_data['type'] == room_type) & (block_data['blockType'] == block_type)]
     # print('block Data', block_data)
     # bt_totals= pd.DataFrame(columns=bt_total_cols)
     # block_data = addWeekdays(block_data)
@@ -254,7 +254,7 @@ def get_block_summary(block_data,bt_totals, block_type):
         else:
             display = str(int(round(ptMinutes/total_minutes*100,0))) +'%'
         bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
-                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
+                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'class':block_type},ignore_index=True)
         
     # unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
     #                           'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
@@ -264,12 +264,16 @@ def get_block_summary(block_data,bt_totals, block_type):
 def create_block_summary(block_data):
     # block_data = block_data[block_data['type'] == 'ALL']
     bt_totals= pd.DataFrame(columns=bt_total_cols)
-    bt_totals = get_block_summary(block_data,bt_totals, 'ALL')
-    bt_totals = get_block_summary(block_data,bt_totals, 'IN')
-    bt_totals = get_block_summary(block_data,bt_totals, 'OUT')
-    print(bt_totals)
+
+    bt_totals = get_block_summary(block_data,bt_totals, 'ALL','Surgeon')
+    bt_totals = get_block_summary(block_data,bt_totals, 'IN','Surgeon')
+    bt_totals = get_block_summary(block_data,bt_totals, 'OUT','Surgeon')
+    bt_totals = get_block_summary(block_data,bt_totals, 'ALL','Surgeon Group')
+    bt_totals = get_block_summary(block_data,bt_totals, 'IN','Surgeon Group')
+    bt_totals = get_block_summary(block_data,bt_totals, 'OUT','Surgeon Group')
+    # print(bt_totals)
     unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
-                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
+                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display,'type':row.type }
                           for index, row in bt_totals.iterrows()] 
     return unit_bt_totals
 
@@ -278,13 +282,13 @@ def get_cum_block_stats_with_dates(curStartDate,curEndDate,unit, cum_block_stats
     block_stats = pd.DataFrame()
     startMonth = curStartDate.month
     endMonth = curEndDate.month + 1
-    print('start month', startMonth, curStartDate)
-    print('end month', endMonth,curEndDate)
+    # print('start month', startMonth, curStartDate)
+    # print('end month', endMonth,curEndDate)
     for i in range(startMonth, endMonth):
         block_data_string = f"{i}_{curStartDate.year}_{unit}"
-        print('block_data_string',block_data_string)
+        # print('block_data_string',block_data_string)
         block_stats = pd.concat([block_stats, cum_block_stats[block_data_string]])
     #     print('block_stats', block_stats)
-    print('block_stats', block_stats)
+    # print('block_stats', block_stats)
     return block_stats
         

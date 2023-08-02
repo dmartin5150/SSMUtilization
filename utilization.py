@@ -105,14 +105,14 @@ def get_util_summary_async():
     curEndDate = get_procedure_date(curEndDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
     selectedProviders = [int(i) for i in selectedProviders]
-    print('selected providers', selectedProviders)
+    # print('selected providers', selectedProviders)
     selectAll = get_data(request.json, "selectAll")
     selectedRooms = get_data(request.json, "selectedRooms")
     roomSelectionOption = get_data(request.json,'roomSelectionOption')
     prime_time_hours = get_data(request.json, "primeTime")
     # total_pt_minutes = get_data(request.json, "totalPTMinutes")
     procedures = getPTProceduresWithRange(curStartDate,curEndDate, dataFrameLookup[unit])
-    print('procedures1', procedures)
+    # print('procedures1', procedures)
     if not selectAll:
         procedures = getfilteredPTProcedures(procedures, selectedProviders)
         print('procedures2', procedures)
@@ -134,9 +134,13 @@ def get_block_totals_async():
     curEndDate = get_procedure_date(curEndDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
-    print('selected provider', selectedProviders)
+    # print('selected provider', selectedProviders)
     # print('keys', cum_block_stats.keys())
+    block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
+    block_stats = cum_block_stats[block_data_string]
+
     block_stats = get_cum_block_stats_with_dates(curStartDate,curEndDate,unit,cum_block_stats)
+    
     # block_stats = cum_block_stats[block_data_string]
     # block_stats = add_block_date(block_stats)
     # print('block stats pre', block_stats)
@@ -165,11 +169,9 @@ def get_block_data_async():
     block_stats = cum_block_stats[block_data_string]
     newProcList = cum_block_procs[block_data_string]
     endDate = getEndDate(startDate)
-    
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
         newProcList = get_filtered_proc_list(flexIds, startDate, endDate, newProcList)
-    print('block columns', block_stats.columns)
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':newProcList}), 200
 
 
