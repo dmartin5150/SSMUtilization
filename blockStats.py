@@ -228,10 +228,13 @@ def formatBlockSubHeaders(title,minutes):
 
 bt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2']
 
-def get_block_summary(block_data):
-    block_data = block_data[block_data['type'] == 'ALL']
+
+
+
+def get_block_summary(block_data,bt_totals, block_type):
+    block_data = block_data[block_data['type'] == block_type]
     # print('block Data', block_data)
-    bt_totals= pd.DataFrame(columns=bt_total_cols)
+    # bt_totals= pd.DataFrame(columns=bt_total_cols)
     # block_data = addWeekdays(block_data)
     for i in range(5):
         total_minutes=0
@@ -253,11 +256,22 @@ def get_block_summary(block_data):
         bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
                             'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
         
+    # unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
+    #                           'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
+    #                       for index, row in bt_totals.iterrows()] 
+    return bt_totals
+    
+def create_block_summary(block_data):
+    # block_data = block_data[block_data['type'] == 'ALL']
+    bt_totals= pd.DataFrame(columns=bt_total_cols)
+    bt_totals = get_block_summary(block_data,bt_totals, 'ALL')
+    bt_totals = get_block_summary(block_data,bt_totals, 'IN')
+    bt_totals = get_block_summary(block_data,bt_totals, 'OUT')
+    print(bt_totals)
     unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
                               'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
                           for index, row in bt_totals.iterrows()] 
     return unit_bt_totals
-    
 
 
 def get_cum_block_stats_with_dates(curStartDate,curEndDate,unit, cum_block_stats):

@@ -13,7 +13,7 @@ from gridBlockSchedule import get_grid_block_schedule_from_file,create_grid_bloc
 from blockOwner import get_num_npis,create_block_owner
 from unitData2 import get_unit_data_from_file,create_unit_data
 from blockStats import  get_block_stats_props_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
-from blockStats import convert_npis_to_int_from_file,get_block_filtered_by_date,get_block_summary
+from blockStats import convert_npis_to_int_from_file,get_block_filtered_by_date,get_block_summary, create_block_summary
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 from padData import pad_data
 from primeTimePTHoursOpt import get_prime_time_procedure_hours,get_unit_report_hours,get_prime_time_procedures_from_range
@@ -146,7 +146,7 @@ def get_block_totals_async():
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
     block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats,selectAll)
-    block_totals = get_block_summary(block_stats)
+    block_totals = create_block_summary(block_stats)
     return json.dumps(block_totals), 200
 
 
