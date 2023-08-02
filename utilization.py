@@ -24,7 +24,7 @@ from roomDetails import get_room_details
 from blockDetails import get_block_details_data
 from dailyUtilization import get_daily_room_utilization
 from surgeonStats import get_surgeon_stats
-from blockStats import get_block_report_hours
+from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
 
 
@@ -134,12 +134,21 @@ def get_block_totals_async():
     curEndDate = get_procedure_date(curEndDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
-    block_stats = cum_block_stats[block_data_string]
+    print('selected provider', selectedProviders)
+    # print('keys', cum_block_stats.keys())
+    block_stats = get_cum_block_stats_with_dates(curStartDate,curEndDate,unit,cum_block_stats)
+    # block_stats = cum_block_stats[block_data_string]
+    # block_stats = add_block_date(block_stats)
+    # print('block stats pre', block_stats)
     block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats)
+    print('block stats post', block_stats['npis'])
+    print('got block stats')
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
     block_totals = get_block_summary(block_stats)
     return json.dumps(block_totals), 200
+
+
 
 
 @app.route('/blocks', methods=['POST'])
