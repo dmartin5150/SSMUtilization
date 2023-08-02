@@ -55,8 +55,11 @@ def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
     block_stats.reset_index(inplace=True,drop=True)
     # print('filtered block stats', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
-    flexIds = block_stats['id'].drop_duplicates()
-    flexIds = [b for b in flexIds if not isinstance(b, float)]
+    print('block stats after padding', block_stats)
+    flexIdData = block_stats[block_stats['room'] != 'none']
+    flexIds = flexIdData['id'].drop_duplicates()
+    print('flexIds', flexIds)
+    # flexIds = [b for b in flexIds if not isinstance(b, float)]
     return block_stats, flexIds
 
 
@@ -226,7 +229,7 @@ def formatBlockSubHeaders(title,minutes):
        return title + ' {:d}H {:02d}M'.format(int(h), int(m))
 
 
-bt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2','type']
+bt_total_cols = ['date', 'dayOfWeek', 'display','nonPTMinutes', 'ptMinutes', 'subHeading1', 'subHeading2','type','class']
 
 
 
@@ -254,7 +257,7 @@ def get_block_summary(block_data,bt_totals, room_type,block_type):
         else:
             display = str(int(round(ptMinutes/total_minutes*100,0))) +'%'
         bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
-                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'class':block_type},ignore_index=True)
+                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'className':block_type},ignore_index=True)
         
     # unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
     #                           'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }
@@ -273,7 +276,7 @@ def create_block_summary(block_data):
     bt_totals = get_block_summary(block_data,bt_totals, 'OUT','Surgeon Group')
     # print(bt_totals)
     unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
-                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display,'type':row.type }
+                              'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display,'type':row.type,'class':row.className }
                           for index, row in bt_totals.iterrows()] 
     return unit_bt_totals
 
