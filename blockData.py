@@ -1,4 +1,4 @@
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,CSCRooms
 import re
 from utilities import get_procedure_date
 import pandas as pd
@@ -37,7 +37,7 @@ def get_block_data(block_data):
     block_data = fill_empty_data(num_frequencies, block_data)
     block_data = block_data[block_data['ministry'] == 'TNNAS'].copy()
     block_data = block_data[(block_data['room'].isin(jriRooms)) | (block_data['room'].isin(stmSTORRooms)) 
-                            | (block_data['room'].isin(MTORRooms))].copy()
+                            | (block_data['room'].isin(MTORRooms)) | (block_data['room'].isin(CSCRooms))].copy()
     closed_rooms = block_data[(block_data['flexId'] == -1)]
     block_data = block_data[(block_data['type'] == 'Surgeon') | (block_data['type'] == 'Surgical Specialty')
                             | (block_data['type'] == 'Surgeon Group')].copy()

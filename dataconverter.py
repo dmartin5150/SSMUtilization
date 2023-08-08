@@ -11,9 +11,9 @@ MTORRooms = ['MT Cysto','MT OR 01','MT OR 02','MT OR 03','MT OR 04','MT OR 05','
              'MT OR 07','MT OR 08','MT OR 09','MT OR 10','MT OR 11','MT OR 12','MT OR 14',
              'MT OR 15','MT OR 16','MT OR 17']
 
-orLookUp = {'BH JRI': jriRooms,'STM ST OR':stmSTORRooms, 'MT OR': MTORRooms}
 
-
+CSCRooms = ['BH CSC 01','BH CSC 02','BH CSC 03','BH CSC 04','BH CSC 05','BH CSC 06','BH CSC 07','BH CSC 09']
+orLookUp = {'BH JRI': jriRooms,'STM ST OR':stmSTORRooms, 'MT OR': MTORRooms,'BH CSC':CSCRooms}
 
 baseData = pd.read_csv('AllCaseData.csv',parse_dates=['procedureDate','startTime', 'endTime'])
 # print(baseData)
@@ -27,3 +27,7 @@ STMSTORData.to_csv('STMSTORData.csv')
 MTORData = baseData[baseData['room'].isin(MTORRooms)]
 # print(MTORData.shape)
 MTORData.to_csv('MTORData.csv')
+
+CSCData = baseData[baseData['room'].isin(CSCRooms)]
+CSCData.to_csv('CSCData.csv')
+

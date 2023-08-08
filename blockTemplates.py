@@ -80,6 +80,7 @@ def generate_block_templates(block_data, frequencies):
     convert_block_datetime_strings_to_dates(block_schedule)
     cast_block_datetimes_to_cst(block_schedule)
     convert_start_end_datetime_to_date_only(block_schedule)
+    print('block template units', block_schedule['unit'].drop_duplicates())
     return block_schedule
     # return block_schedule[(block_schedule['state'] != 'COMPLETE')]
 

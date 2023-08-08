@@ -1,5 +1,5 @@
 import pandas as pd
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms, CSCRooms
 import pytz;
 from datetime import date, time,datetime, timezone;
 from utilities import get_block_date_with_timezone,get_procedure_date,cast_to_cst
@@ -48,14 +48,15 @@ def get_unit_data(filename,grid_block_schedule):
             'room','procedures[0].procedureName','unit']
     names = ['NPI', 'startTime', 'endTime', 'duration', 'procedureDate', 'room', 'procedureName','unit']
     baseData = pd.read_csv(filename, usecols=dataCols)
+    print('filename', filename, 'basedata', baseData.shape)
     baseData.rename(columns={'procedures[0].primaryNpi':'NPI','procedures[0].procedureName':'procedureName'}, inplace=True)
 
     surgeons = pd.read_csv('Surgeons.csv')
     dataWithSurgeonNames = baseData.merge(surgeons, left_on='NPI', right_on='npi')
-
+    print('filename', filename, 'after surgeons basedata', baseData.shape)
     #only select SSM units 
     dataWithSurgeonNames = dataWithSurgeonNames[(dataWithSurgeonNames['room'].isin(jriRooms)) | (dataWithSurgeonNames['room'].isin(stmSTORRooms)) 
-                        | (dataWithSurgeonNames['room'].isin(MTORRooms))]
+                        | (dataWithSurgeonNames['room'].isin(MTORRooms)) | (dataWithSurgeonNames['room'].isin(CSCRooms)) ]
     #properly format dates and times
     dataWithSurgeonNames = convert_unit_datetime_strings_to_dates(dataWithSurgeonNames)
     dataWithSurgeonNames = convert_unit_datetime_to_central_time(dataWithSurgeonNames)

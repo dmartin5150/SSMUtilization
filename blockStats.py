@@ -21,7 +21,7 @@ def get_blocks_from_unit(block_schedule, unit):
 
 
 def update_block_times(data):
-    # print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
+    print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
     timezone = pytz.timezone("US/Central")
     data['blockStartTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
                           time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second))), axis=1)
@@ -138,7 +138,9 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
         curEndDate = getEndDate(startDate)
         for x in range (startDate.month, endDate.month):
             procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
+            print('unit',unit,  procedures.shape)
             cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
+            print('blockschedule', cur_block_schedule.shape)
             block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
@@ -253,7 +255,7 @@ def get_block_summary(block_data,bt_totals, room_type,block_type):
         subHeading1 = formatBlockSubHeaders('BT: ',ptMinutes)
         subHeading2 = formatBlockSubHeaders('nBT: ',nonptMinutes)
         if total_minutes == 0:
-            display = '0%'
+            display = 'None'
         else:
             display = str(int(round(ptMinutes/total_minutes*100,0))) +'%'
         bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,

@@ -1,10 +1,10 @@
 import pandas as pd;
-
+from datetime import date
 from flask import Flask, flash, request, redirect, render_template, send_from_directory,abort
 from flask_cors import CORS
 import json
 
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp,CSCRooms
 from utilities import get_procedure_date
 from blockData import create_block_data
 from blockTemplates import get_block_templates_from_file, create_block_templates
@@ -26,6 +26,7 @@ from dailyUtilization import get_daily_room_utilization
 from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
+from openTimes import get_future_open_times
 
 
 
@@ -68,14 +69,17 @@ if (timestamp == saved_timestamp):
     jriData = get_unit_data_from_file('jri_gen_data.csv')
     STMSTORData = get_unit_data_from_file('stm_gen_data.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
-    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
+    CSCData = get_unit_data_from_file('csc_gen_data.csv')
+    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_props_from_file(startDate,endDate)
+    future_open_times = get_future_open_times(date.today(), endDate,dataFrameLookup, cum_block_stats)
+    
 
 else:
     block_data = create_block_data("blockslots.csv")
     block_templates = create_block_templates(block_data, 'blockTemplates.csv')
-    roomLists = [jriRooms,stmSTORRooms,MTORRooms]
+    roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms]
     
     block_no_release, block_schedule =  create_block_schedules(startDate, endDate,block_templates, roomLists,'block_release_schedule.csv', 'block_no_release.csv')
     grid_block_schedule = create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, 'grid_block_schedule.csv')
@@ -85,7 +89,8 @@ else:
     jriData = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv')
     STMSTORData = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv')
     MTORData = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv')
-    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData}
+    CSCData = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv')
+    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
 
@@ -196,10 +201,12 @@ def get_details_async():
     unit = get_data(request.json, "unit")
     room = get_data(request.json,"room")
     prime_time_hours = get_data(request.json, "primeTime")
+    print('getting details')
     data = dataFrameLookup[unit]
     block_details = get_block_details_data(room,date_requested,block_schedule)
     room_details = get_room_details(unit, date_requested, room, data,prime_time_hours['start'], prime_time_hours['end'])
     return json.dumps({'room':room_details, 'block':block_details}), 200
+
 
 
 @app.route('/surgeon', methods=['GET'])
