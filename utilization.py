@@ -4,7 +4,7 @@ from flask import Flask, flash, request, redirect, render_template, send_from_di
 from flask_cors import CORS
 import json
 
-from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp,CSCRooms
+from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp,CSCRooms,STORRooms
 from utilities import get_procedure_date
 from blockData import create_block_data
 from blockTemplates import get_block_templates_from_file, create_block_templates
@@ -70,7 +70,8 @@ if (timestamp == saved_timestamp):
     STMSTORData = get_unit_data_from_file('stm_gen_data.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
     CSCData = get_unit_data_from_file('csc_gen_data.csv')
-    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData}
+    STORData = get_unit_data_from_file('stor_gen_data.csv')
+    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_props_from_file(startDate,endDate)
     future_open_times = get_future_open_times(date.today(), endDate,dataFrameLookup, cum_block_stats)
@@ -79,7 +80,7 @@ if (timestamp == saved_timestamp):
 else:
     block_data = create_block_data("blockslots.csv")
     block_templates = create_block_templates(block_data, 'blockTemplates.csv')
-    roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms]
+    roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms,STORRooms]
     
     block_no_release, block_schedule =  create_block_schedules(startDate, endDate,block_templates, roomLists,'block_release_schedule.csv', 'block_no_release.csv')
     grid_block_schedule = create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, 'grid_block_schedule.csv')
@@ -90,7 +91,8 @@ else:
     STMSTORData = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv')
     MTORData = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv')
     CSCData = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv')
-    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData}
+    STORData = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv')
+    dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
 
@@ -214,9 +216,13 @@ def get_surgeon_lists_async():
     jriList = get_providers('BH JRI',dataFrameLookup)
     stmSTORList = get_providers('STM ST OR',dataFrameLookup)
     mtORList = get_providers('MT OR',dataFrameLookup)
+    cscORList = get_providers('BH CSC',dataFrameLookup)
+    stORList = get_providers('ST OR', dataFrameLookup)
     return json.dumps({'BH JRI': jriList,
                         'STM ST OR': stmSTORList,
-                        'MT OR': mtORList}), 200
+                        'MT OR': mtORList,
+                        'BH CSC':cscORList,
+                        'ST OR':stORList}), 200
 
 @app.route('/pt_hours', methods=['POST'])
 def get_pt_hours_async():
