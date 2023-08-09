@@ -147,13 +147,13 @@ def get_total_pt_minutes_option_surgeon(pt_minutes_per_room, data):
         # print('num_rooms',num_rooms)
         # print('total_minutes', total_minutes)
         # print('curDate', curDate)
-    print('total minute', total_minutes)
+    # print('total minute', total_minutes)
     return total_minutes
 
 
 def get_pt_totals(data,basePTMinutes,startDate,endDate,roomOption,prime_time):
     pt_totals = pd.DataFrame(columns=pt_total_cols)
-    print('data', data)
+    # print('data', data)
     for i in range(5):
         curData = data[data['weekday'] == (i + 1)]
         if (roomOption == 3):

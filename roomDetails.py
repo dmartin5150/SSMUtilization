@@ -11,12 +11,14 @@ def get_room_details(unit, selected_date, room,data,pt_start, pt_end):
     room_data = data[(data['procedureDtNoTime'] == procedure_date.date()) & (data['room'] == room)].sort_values(by=['startTime'])
 
     prime_time_start= datetime(procedure_date.year,procedure_date.month,procedure_date.day,int(pt_start_data[0]),int(pt_start_data[1]),0).astimezone(pytz.timezone("US/Central"))
+    print('prime_time_start', prime_time_start, type(prime_time_start))
     prime_time_end= datetime(procedure_date.year,procedure_date.month,procedure_date.day,int(pt_end_data[0]),int(pt_end_data[1]),0).astimezone(pytz.timezone("US/Central"))
     room_data.reset_index(drop=True, inplace=True)
     for ind in room_data.index:
         surgeon = room_data['fullName'][ind]
         npi = room_data['NPI'][ind]
         start_time = room_data['local_start_time'][ind]
+        print('start time', start_time, type(start_time))
         end_time = room_data['local_end_time'][ind]
         duration = room_data['duration'][ind]
         procedure_name = room_data['procedureName'][ind]

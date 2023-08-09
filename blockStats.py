@@ -21,7 +21,7 @@ def get_blocks_from_unit(block_schedule, unit):
 
 
 def update_block_times(data):
-    print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
+    # print('blockstarttime','date', type(data.iloc[0]['blockDate']),'time', data.iloc[0]['end_time'])
     timezone = pytz.timezone("US/Central")
     data['blockStartTime'] = data.apply(lambda row: timezone.localize(datetime.combine(date(row['blockDate'].year, row['blockDate'].month, row['blockDate'].day), 
                           time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second))), axis=1)
@@ -55,10 +55,10 @@ def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
     block_stats.reset_index(inplace=True,drop=True)
     # print('filtered block stats', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
-    print('block stats after padding', block_stats)
+    # print('block stats after padding', block_stats)
     flexIdData = block_stats[block_stats['room'] != 'none']
     flexIds = flexIdData['id'].drop_duplicates()
-    print('flexIds', flexIds)
+    # print('flexIds', flexIds)
     # flexIds = [b for b in flexIds if not isinstance(b, float)]
     return block_stats, flexIds
 
@@ -138,9 +138,9 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
         curEndDate = getEndDate(startDate)
         for x in range (startDate.month, endDate.month):
             procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
-            print('unit',unit,  procedures.shape)
+            # print('unit',unit,  procedures.shape)
             cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
-            print('blockschedule', cur_block_schedule.shape)
+            # print('blockschedule', cur_block_schedule.shape)
             block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
@@ -156,6 +156,7 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
 
 def update_block_dates_from_file(df):
     df['blockDate'] = df['blockDate'].apply(lambda x: get_procedure_date(x))
+    df['blockDate'] = df['blockDate'].apply(lambda x: x.date())
     df['blockStartTime'] = df['blockStartTime'].apply(lambda x: get_procedure_date(x))
     df['blockEndTime'] = df['blockEndTime'].apply(lambda x: get_procedure_date(x))
     # print(df.dtypes)
@@ -175,7 +176,7 @@ def update_npi_list_from_file(df):
     return df
 
 
-def get_block_stats_props_from_file(startDate,endDate):
+def get_block_stats_procs_from_file(startDate,endDate):
     cum_block_stats = {}
     cum_block_procs = {}
     for unit in units:
@@ -192,7 +193,7 @@ def get_block_stats_props_from_file(startDate,endDate):
     return cum_block_stats, cum_block_procs
 
 def add_block_date(block_stats):
-    block_stats['blockDate'] = block_stats['blockDate'].apply(lambda x: x.date())
+    # block_stats['blockDate'] = block_stats['blockDate'].apply(lambda x: x.date())
     block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
     # print('dates',block_stats['weekday'])
     return block_stats
@@ -211,8 +212,10 @@ def add_block_date(block_stats):
 def get_block_filtered_by_date(curStartDate, curEndDate, block_stats,selectAll):
     # print('start date type', curStartDate)
     # print('enddate', curEndDate)
+    print('block date', block_stats.iloc[0]['blockDate'], type(block_stats.iloc[0]['blockDate']))
     if selectAll:
         block_stats = add_block_date(block_stats)
+
     block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
     # print('block stats', block_stats)
     block_stats = block_stats[(block_stats['blockDate'] >= curStartDate) & (block_stats['blockDate'] <= curEndDate)]

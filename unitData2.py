@@ -48,12 +48,12 @@ def get_unit_data(filename,grid_block_schedule):
             'room','procedures[0].procedureName','unit']
     names = ['NPI', 'startTime', 'endTime', 'duration', 'procedureDate', 'room', 'procedureName','unit']
     baseData = pd.read_csv(filename, usecols=dataCols)
-    print('filename', filename, 'basedata', baseData.shape)
+    # print('filename', filename, 'basedata', baseData.shape)
     baseData.rename(columns={'procedures[0].primaryNpi':'NPI','procedures[0].procedureName':'procedureName'}, inplace=True)
 
     surgeons = pd.read_csv('Surgeons.csv')
     dataWithSurgeonNames = baseData.merge(surgeons, left_on='NPI', right_on='npi')
-    print('filename', filename, 'after surgeons basedata', baseData.shape)
+    # print('filename', filename, 'after surgeons basedata', baseData.shape)
     #only select SSM units 
     dataWithSurgeonNames = dataWithSurgeonNames[(dataWithSurgeonNames['room'].isin(jriRooms)) | (dataWithSurgeonNames['room'].isin(stmSTORRooms)) 
                         | (dataWithSurgeonNames['room'].isin(MTORRooms)) | (dataWithSurgeonNames['room'].isin(CSCRooms)) |
@@ -79,7 +79,10 @@ def update_unit_date_times_from_file(unitData):
     unitData['startTime'] = unitData['startTime'].apply(lambda x: get_block_date_with_timezone(x))
     unitData['endTime'] = unitData['endTime'].apply(lambda x: get_block_date_with_timezone(x))
     unitData['local_start_time'] = unitData['local_start_time'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['local_start_time'] = unitData['local_start_time'].apply(lambda x: cast_to_cst(x))
     unitData['local_end_time'] = unitData['local_end_time'].apply(lambda x: get_block_date_with_timezone(x))
+    unitData['local_end_time'] = unitData['local_end_time'].apply(lambda x: cast_to_cst(x))
+    # unitData['local_start_time'] = unitData['local_start_time'].apply(lambda x: datetime.fromtimestamp(x))
     unitData['blockDate_x'] = unitData['blockDate_x'].apply(lambda x: get_procedure_date(x).date())
     unitData['procedureDtNoTime'] = unitData['procedureDtNoTime'].apply(lambda x:get_procedure_date(x).date())
     unitData['ptStart'] = unitData['ptStart'].apply(lambda x: cast_to_cst(get_block_date_with_timezone(x)))
@@ -94,7 +97,7 @@ def update_unit_date_times_from_file(unitData):
 def get_unit_data_from_file(filename):
     unitData = pd.read_csv(filename)
     unitData = update_unit_date_times_from_file(unitData)
-    print(unitData.dtypes)
+    # print(unitData.dtypes)
     return unitData
 
 def create_unit_data(filename,grid_block_schedule,ud_output_filename):

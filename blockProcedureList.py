@@ -32,15 +32,15 @@ def updateProcedureLists(curRow,unit,room, block_date, procedures,roomType,procL
 
 def get_filtered_proc_list(flexIds, start_date, end_date, procList):
     filtered_list = []
-    print('start date', start_date)
-    print('end date', end_date)
+    # print('start date', start_date)
+    # print('end date', end_date)
     # print('proc list', procList)
-    print('flexIds', flexIds)
+    # print('flexIds', flexIds)
     for flexId in flexIds: 
         curList = [x for x in procList if ((x['blockId'] == str(int(flexId))) & (get_procedure_date(x['blockDate']).date()>= start_date) &
                                            (get_procedure_date(x['blockDate']).date() < end_date))] 
         # print('curList', curList)
         filtered_list.extend(curList)
-    print('filtered list', filtered_list)
+    # print('filtered list', filtered_list)
     return filtered_list
         

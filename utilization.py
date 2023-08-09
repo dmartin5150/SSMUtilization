@@ -12,7 +12,7 @@ from blockSchedule import get_schedule_from_file,create_block_schedules
 from gridBlockSchedule import get_grid_block_schedule_from_file,create_grid_block_schedule
 from blockOwner import get_num_npis,create_block_owner
 from unitData2 import get_unit_data_from_file,create_unit_data
-from blockStats import  get_block_stats_props_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
+from blockStats import  get_block_stats_procs_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
 from blockStats import convert_npis_to_int_from_file,get_block_filtered_by_date,get_block_summary, create_block_summary
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
 from padData import pad_data
@@ -46,8 +46,8 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-3-1').date()
-endDate = get_procedure_date('2023-9-1').date()
+startDate = get_procedure_date('2023-4-1').date()
+endDate = get_procedure_date('2023-10-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
 block_schedule = pd.DataFrame()
@@ -73,7 +73,7 @@ if (timestamp == saved_timestamp):
     STORData = get_unit_data_from_file('stor_gen_data.csv')
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     num_npis = get_num_npis(block_owner)
-    cum_block_stats, cum_block_procs = get_block_stats_props_from_file(startDate,endDate)
+    cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
     future_open_times = get_future_open_times(date.today(), endDate,dataFrameLookup, cum_block_stats)
     
 
@@ -83,6 +83,9 @@ else:
     roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms,STORRooms]
     
     block_no_release, block_schedule =  create_block_schedules(startDate, endDate,block_templates, roomLists,'block_release_schedule.csv', 'block_no_release.csv')
+    block_no_release = block_no_release.drop_duplicates(subset=['blockName','unit','start_time','end_time','blockDate'])
+    block_schedule = block_schedule.drop_duplicates(subset=['blockName','unit','start_time','end_time','blockDate'])
+
     grid_block_schedule = create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, 'grid_block_schedule.csv')
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
 
@@ -122,7 +125,7 @@ def get_util_summary_async():
     # print('procedures1', procedures)
     if not selectAll:
         procedures = getfilteredPTProcedures(procedures, selectedProviders)
-        print('procedures2', procedures)
+        # print('procedures2', procedures)
     procedures = getfilteredRoomPTProcedures(procedures, roomSelectionOption, selectedRooms)
     # print('procedures3', procedures)
     total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms,curStartDate, curEndDate)

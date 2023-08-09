@@ -122,7 +122,7 @@ def get_block_schedule(startDate,endDate, block_templates,roomLists):
     block_change_dates = get_start_end_dates_from_templates(block_templates)
     for curMonth in range(startDate.month, endDate.month):
         curTemplates = update_block_templates_from_date(block_templates, startDate)
-        print('month', curMonth)
+        # print('month', curMonth)
         cur_no_release, cur_block_schedule = create_monthly_block_schedule(curMonth,block_templates, curTemplates,roomLists, manual_release,block_change_dates)
         final_block_schedule = pd.concat([final_block_schedule, cur_block_schedule])
         final_no_release_schedule = pd.concat([final_no_release_schedule, cur_no_release])
@@ -147,6 +147,7 @@ def update_time_dates_from_file(block_schedule):
 def get_schedule_from_file(filename):
     block_schedule = pd.read_csv(filename)
     block_schedule = update_time_dates_from_file(block_schedule)
+    print('block schedule', type(block_schedule.iloc[0]['blockDate']))
     return block_schedule
 
 def create_block_schedules(startDate, endDate,block_templates, roomLists,bs_ouput_filename, bnr_output_filename):
