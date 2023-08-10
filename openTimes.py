@@ -33,14 +33,14 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
         ref_start = curBlock['start_time']
         ref_end = curBlock['end_time']
         name = curBlock['blockName']
-        
     else:
         ref_start = datetime(curDate.year,curDate.month,curDate.day,int(7),int(0),0).astimezone(pytz.timezone("US/Central"))
         ref_end = datetime(curDate.year,curDate.month,curDate.day,int(16),int(0),0).astimezone(pytz.timezone("US/Central"))
         name = 'OPEN'
 
     filtered_procedures = get_filtered_procedures(procedures, ref_start,ref_end)
-
+    print('ref start', ref_start)
+    print('ref end', ref_end)
     if (filtered_procedures.shape[0] == 0):
         time_difference = (ref_end - ref_start).seconds/60
         formatted_start = formatProcedureTimes(ref_start)
@@ -53,10 +53,11 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
     filtered_procedures = filtered_procedures.sort_values(by=['local_start_time'])
     filtered_procedures.reset_index(drop=True, inplace=True)
 
+
     for ind in filtered_procedures.index:
         start_time = filtered_procedures['local_start_time'][ind]
         end_time = filtered_procedures['local_end_time'][ind]
-        duration = (end_time - start_time).seconds/60
+        duration = (end_time - start_time).seconds/60 
         if ind == 0:
             if (start_time > ref_start):
                 if (start_time > ref_end):
@@ -79,10 +80,6 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
                 formatted_end = formatProcedureTimes(start_time)
                 unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
 
-        formatted_time = formatMinutes(duration)
-        formatted_start = formatProcedureTimes(start_time)
-        formatted_end = formatProcedureTimes(end_time)
-        unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':duration,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
 
         if ind == len(filtered_procedures.index)-1:
             if end_time < ref_end:  
@@ -92,7 +89,6 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
                 formatted_end = formatProcedureTimes(ref_end)
                 unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
 
-    unused_time = remove_procedures(unused_time,filtered_procedures)
     return unused_time
 
 
@@ -102,14 +98,22 @@ def combine_blocks_and_procs(curProcs, blocks,start_date,room):
 
 
 
-def update_block_dates(block_date, blocks):
-    for row in range(blocks.shape[0]):
+
+
+
+
+def update_block_dates(block_date, curRow):
+    ref_start = curRow['start_time']
+    ref_end = curRow['end_time']
+    curRow['start_time'] =  datetime(block_date.year,block_date.month,block_date.day,ref_start.hour,ref_start.minute,0).astimezone(pytz.timezone("US/Central"))
+    curRow['end_time'] = datetime(block_date.year,block_date.month,block_date.day,ref_end.hour,ref_end.minute,0).astimezone(pytz.timezone("US/Central"))
+    return curRow
+
+def add_all_blocks(blocks, curProcs):
+    for row in range(blocks.shape[0]): 
         curRow = blocks.iloc[row]
-        ref_start = curRow['start_time']
-        ref_end = curRow['end_time']
-        blocks['start_time'] =  datetime(block_date.year,block_date.month,block_date.day,ref_start.hour,ref_start.minute,0).astimezone(pytz.timezone("US/Central"))
-        blocks['end_time'] = datetime(block_date.year,block_date.month,block_date.day,ref_end.hour,ref_end.minute,0).astimezone(pytz.timezone("US/Central"))
-    return blocks
+        curProcs = curProcs.append({'local_start_time':curRow['start_time'], 'local_end_time':curRow['end_time']}, ignore_index=True)
+    return curProcs
 
 
 def get_future_open_times(start_date, end_date, procedures,room, block_schedule):
@@ -122,12 +126,19 @@ def get_future_open_times(start_date, end_date, procedures,room, block_schedule)
         curProcs = create_pseudo_schedule(curProcs)
         blocks = get_blocks(start_date,room,block_schedule)
         if (blocks.shape[0] != 0):
-            blocks = update_block_dates(start_date, blocks.copy())
+            blocks = blocks.apply(lambda row: update_block_dates(start_date, row), axis=1)
+            block_procs = curProcs.copy()
             for row in range(blocks.shape[0]):
-                unused_time = get_unused_times(unused_time, start_date, curProcs,blocks.iloc[row], room,'BLOCK')
-                curProcs = combine_blocks_and_procs(curProcs,blocks.iloc[row],start_date,room)
-                curProcs = curProcs.sort_values(by=['local_start_time'])
-                curProcs = create_pseudo_schedule(curProcs)    
+                unused_time = get_unused_times(unused_time, start_date, block_procs,blocks.iloc[row], room,'BLOCK')
+                block_procs = combine_blocks_and_procs(block_procs,blocks.iloc[row],start_date,room)
+                block_procs = block_procs.sort_values(by=['local_start_time'])
+                block_procs = create_pseudo_schedule(block_procs)  
+            curProcs = add_all_blocks(blocks,curProcs)
+            curProcs = curProcs.sort_values(by=['local_start_time'])
+            print('added blocks')
+            print('procs', curProcs)
+            curProcs = create_pseudo_schedule(curProcs)  
+        print('pseudoschedule', curProcs)
         unused_time = get_unused_times(unused_time, start_date, curProcs,blank_block, room,'OPEN')
         print('unused time', unused_time)
         start_date += delta
