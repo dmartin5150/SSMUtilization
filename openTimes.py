@@ -5,7 +5,7 @@ from blockpseudoschedule import create_pseudo_schedule
 import pytz
 from utilities import formatProcedureTimes,get_procedure_date,formatMinutes
 
-open_time_cols = ['name', 'proc_date','local_start_time','local_end_time','room','unused_block_minutes','formated_minutes','open_type']
+open_time_cols = ['name', 'proc_date','local_start_time','local_end_time','room','unused_block_minutes','formated_minutes','open_type','release_date']
 
 def get_cur_procs(cur_date, room, procs):
     return procs[(procs['procedureDtNoTime'] ==cur_date) & (procs['room'] == room)]
@@ -33,10 +33,12 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
         ref_start = curBlock['start_time']
         ref_end = curBlock['end_time']
         name = curBlock['blockName']
+        release_date = curBlock['releaseDate'].date()
     else:
         ref_start = datetime(curDate.year,curDate.month,curDate.day,int(7),int(0),0).astimezone(pytz.timezone("US/Central"))
         ref_end = datetime(curDate.year,curDate.month,curDate.day,int(16),int(0),0).astimezone(pytz.timezone("US/Central"))
         name = 'OPEN'
+        release_date = '1/1/2023'
 
     filtered_procedures = get_filtered_procedures(procedures, ref_start,ref_end)
     print('ref start', ref_start)
@@ -46,7 +48,7 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
         formatted_start = formatProcedureTimes(ref_start)
         formatted_end = formatProcedureTimes(ref_end)
         formatted_time = formatMinutes(time_difference)
-        unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
+        unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type,'release_date':release_date},ignore_index=True) 
         return unused_time
 
 
@@ -70,7 +72,7 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
                         formatted_end = formatProcedureTimes(ref_end)
                     else:
                         formatted_end = formatProcedureTimes(start_time)
-                    unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
+                    unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type,'release_date':release_date},ignore_index=True) 
                     
         else:
             if (start_time > ref_start):
@@ -78,7 +80,7 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
                 formatted_time = formatMinutes(time_difference)
                 formatted_start = formatProcedureTimes(filtered_procedures['local_end_time'][ind - 1])
                 formatted_end = formatProcedureTimes(start_time)
-                unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
+                unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type,'release_date':release_date},ignore_index=True) 
 
 
         if ind == len(filtered_procedures.index)-1:
@@ -87,7 +89,7 @@ def get_unused_times(unused_time, curDate, procedures,curBlock, room,open_type):
                 formatted_time = formatMinutes(time_difference)
                 formatted_start = formatProcedureTimes(end_time)
                 formatted_end = formatProcedureTimes(ref_end)
-                unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type},ignore_index=True) 
+                unused_time = unused_time.append({'name':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'room':room,'unused_block_minutes':time_difference,'formated_minutes':formatted_time,'open_type':open_type,'release_date':release_date},ignore_index=True) 
 
     return unused_time
 
@@ -122,6 +124,10 @@ def get_future_open_times(start_date, end_date, procedures,room, block_schedule)
     blank_block = pd.DataFrame()
     print(block_schedule.columns)
     while start_date <= end_date:
+        print('start_date', start_date.isoweekday())
+        if ((start_date.isoweekday() == 6) | (start_date.isoweekday() == 7)):
+            start_date += delta
+            continue
         curProcs = get_cur_procs(start_date,room,procedures)
         curProcs = create_pseudo_schedule(curProcs)
         blocks = get_blocks(start_date,room,block_schedule)
@@ -135,10 +141,10 @@ def get_future_open_times(start_date, end_date, procedures,room, block_schedule)
                 block_procs = create_pseudo_schedule(block_procs)  
             curProcs = add_all_blocks(blocks,curProcs)
             curProcs = curProcs.sort_values(by=['local_start_time'])
-            print('added blocks')
-            print('procs', curProcs)
+            # print('added blocks')
+            # print('procs', curProcs)
             curProcs = create_pseudo_schedule(curProcs)  
-        print('pseudoschedule', curProcs)
+        # print('pseudoschedule', curProcs)
         unused_time = get_unused_times(unused_time, start_date, curProcs,blank_block, room,'OPEN')
         print('unused time', unused_time)
         start_date += delta
