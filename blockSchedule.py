@@ -140,6 +140,7 @@ def update_time_dates_from_file(block_schedule):
     block_schedule['start_date'] = block_schedule['start_date'].apply(lambda x: get_procedure_date(x))
     block_schedule['end_date'] = block_schedule['end_date'].apply(lambda x: get_procedure_date(x))
     block_schedule['blockDate'] = block_schedule['blockDate'].apply(lambda x: get_procedure_date(x))
+    block_schedule['blockDate'] = block_schedule['blockDate'].apply(lambda x: x.date())
     block_schedule['releaseDate'] = block_schedule['releaseDate'].apply(lambda x: get_procedure_date(x))
     return block_schedule
 

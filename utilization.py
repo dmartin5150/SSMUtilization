@@ -46,8 +46,8 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-4-1').date()
-endDate = get_procedure_date('2023-10-1').date()
+startDate = get_procedure_date('2023-8-1').date()
+endDate = get_procedure_date('2023-8-31').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
 block_schedule = pd.DataFrame()
@@ -74,7 +74,7 @@ if (timestamp == saved_timestamp):
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
-    future_open_times = get_future_open_times(date.today(), endDate,dataFrameLookup, cum_block_stats)
+
     
 
 else:
@@ -104,6 +104,11 @@ else:
 def get_data(request, string):
     data_requested = request[string]
     return data_requested
+
+
+
+future_open_times = get_future_open_times(startDate,endDate,dataFrameLookup['BH JRI'],'BH JRI 06',block_schedule)
+
 
 
 @app.route('/utilSummary', methods=['POST'])
@@ -242,4 +247,4 @@ def get_pt_hours_async():
 
 
 
-app.run(host='0.0.0.0', port=5001)
+# app.run(host='0.0.0.0', port=5001)
