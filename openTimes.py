@@ -183,6 +183,6 @@ def get_open_times(unit, start_date, open_times):
     selected_times = open_times[(open_times['unit'] == unit) & (open_times['proc_date'] >= start_date) & (open_times['proc_date'] <= end_date)]
     future_open_times = [{'id': index,'unit': row.unit, 'local_start_time':row.local_start_time, 'local_end_time':row.local_end_time,
                           'room':row.room, 'unused_block_minutes':row.unused_block_minutes, 'formatted_minutes':row.formatted_minutes, 
-                          'open_type':row.open_type, 'release_date':row.release_date
+                          'open_type':row.open_type, 'proc_date': str(row.proc_date), 'release_date':str(row.release_date)
                           } for index, row in selected_times.iterrows()] 
     return future_open_times
