@@ -160,24 +160,27 @@ def create_future_open_times(start_date, dataFrameLookup, block_schedule,filenam
         for room in orLookUp[unit]:
             print(room)
             unused_time = get_future_open_times(start_date, end_date, dataFrameLookup[unit],unit, room, block_schedule,unused_time)
-
+    print('unused time', unused_time)
     unused_time.to_csv(filename)
     return unused_time
 
 def update_dates(future_open_times):
-    return future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
+    future_open_times['proc_date'] = future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
+    return future_open_times
 
 def get_future_open_times_from_file(filename):
     future_open_times = pd.read_csv(filename)
     future_open_times = update_dates(future_open_times)
+    print(future_open_times)
     return future_open_times
 
 
-def get_open_times(unit, start_date, future_open_times):
+def get_open_times(unit, start_date, open_times):
     if (start_date.day != 1):
         start_date = date(start_date.year, start_date.month, 1)
     start_date, end_date = get_date_range_with_date(start_date,1)
-    selected_times = future_open_times[(future_open_times['unit'] == unit) & (future_open_times['proc_date'] >= start_date) & (future_open_times['proc_date'] <= end_date)]
+    print('open time', type(open_times), open_times.columns)
+    selected_times = open_times[(open_times['unit'] == unit) & (open_times['proc_date'] >= start_date) & (open_times['proc_date'] <= end_date)]
     future_open_times = [{'id': index,'unit': row.unit, 'local_start_time':row.local_start_time, 'local_end_time':row.local_end_time,
                           'room':row.room, 'unused_block_minutes':row.unused_block_minutes, 'formatted_minutes':row.formatted_minutes, 
                           'open_type':row.open_type, 'release_date':row.release_date
