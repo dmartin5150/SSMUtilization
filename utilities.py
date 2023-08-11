@@ -47,6 +47,17 @@ def get_date_range(start_date):
     end_date = date(next_year, next_month,1)
     return start_date, end_date
 
+def get_date_range_with_date(start_date, months):
+    delta = timedelta(days=-1)
+    if start_date.month == 12:
+        next_month = 1
+        next_year = start_date.year +1
+    else:
+        next_month = start_date.month +months
+        next_year = start_date.year
+    end_date = date(next_year, next_month,1) + delta
+    return start_date, end_date
+
 
 def get_pt_hours_minutes(pt):
     hour_minutes = pt.split(':')

@@ -26,7 +26,7 @@ from dailyUtilization import get_daily_room_utilization
 from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
-from openTimes import get_future_open_times
+from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
 
 
 
@@ -46,8 +46,8 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-8-1').date()
-endDate = get_procedure_date('2023-8-31').date()
+startDate = get_procedure_date('2023-4-1').date()
+endDate = get_procedure_date('2023-10-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
 block_schedule = pd.DataFrame()
@@ -59,6 +59,7 @@ dataFrameLookup = {}
 num_npis = get_num_npis(block_owner)
 cum_block_stats = {}
 cum_block_procs = {}
+future_open_times = pd.DataFrame()
 
 if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
@@ -74,6 +75,7 @@ if (timestamp == saved_timestamp):
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
+    future_open_times = get_future_open_times_from_file('opentime.csv')
 
     
 
@@ -81,15 +83,15 @@ else:
     block_data = create_block_data("blockslots.csv")
     block_templates = create_block_templates(block_data, 'blockTemplates.csv')
     roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms,STORRooms]
-    
+    print('getting block schedule')
     block_no_release, block_schedule =  create_block_schedules(startDate, endDate,block_templates, roomLists,'block_release_schedule.csv', 'block_no_release.csv')
     block_no_release = block_no_release.drop_duplicates(subset=['blockName','unit','start_time','end_time','blockDate'])
     block_schedule = block_schedule.drop_duplicates(subset=['blockName','unit','start_time','end_time','blockDate'])
-
+    print('getting block owners')
     grid_block_schedule = create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, 'grid_block_schedule.csv')
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
 
-
+    print('getting unit data')
     jriData = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv')
     STMSTORData = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv')
     MTORData = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv')
@@ -97,7 +99,11 @@ else:
     STORData = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv')
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     num_npis = get_num_npis(block_owner)
+    print('getting block stats')
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
+    print('getting open times')
+    future_start_date = get_procedure_date('2023-8-1').date()
+    future_open_times = create_future_open_times(future_start_date, dataFrameLookup, block_schedule,'opentime.csv')
 
 
 
@@ -107,8 +113,13 @@ def get_data(request, string):
 
 
 
-future_open_times = get_future_open_times(startDate,endDate,dataFrameLookup['BH JRI'],'BH JRI 06',block_schedule)
 
+@app.route('/opentimes', methods=['POST'])
+def get_open_times_async():
+    unit = get_data(request.json, "unit")
+    curStartDate = get_data(request.json, "startDate")
+    curStartDate = get_procedure_date(curStartDate).date()
+    return json.dumps(get_open_times(unit, curStartDate)), 200
 
 
 @app.route('/utilSummary', methods=['POST'])
@@ -247,4 +258,4 @@ def get_pt_hours_async():
 
 
 
-# app.run(host='0.0.0.0', port=5001)
+app.run(host='0.0.0.0', port=5001)
