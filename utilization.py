@@ -119,6 +119,7 @@ def get_open_times_async():
     unit = get_data(request.json, "unit")
     curStartDate = get_data(request.json, "startDate")
     curStartDate = get_procedure_date(curStartDate).date()
+    print(get_open_times(unit, curStartDate,future_open_times))
     return json.dumps(get_open_times(unit, curStartDate,future_open_times)), 200
 
 
