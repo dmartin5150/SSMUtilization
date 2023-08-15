@@ -38,7 +38,7 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
         ref_start = datetime(curDate.year,curDate.month,curDate.day,int(7),int(0),0).astimezone(pytz.timezone("US/Central"))
         ref_end = datetime(curDate.year,curDate.month,curDate.day,int(16),int(0),0).astimezone(pytz.timezone("US/Central"))
         name = 'OPEN'
-        release_date = 'N/A'
+        release_date = 'NA'
 
     filtered_procedures = get_filtered_procedures(procedures, ref_start,ref_end)
     # print('ref start', ref_start)
@@ -170,9 +170,9 @@ def create_future_open_times(start_date, dataFrameLookup, block_schedule,filenam
 
 
 def get_future_open_times_from_file(filename):
-    future_open_times = pd.read_csv(filename)
+    future_open_times = pd.read_csv(filename,dtype={'release_date':str})
     future_open_times = update_dates(future_open_times)
-    print(future_open_times)
+    print(future_open_times['release_date'])
     return future_open_times
 
 
