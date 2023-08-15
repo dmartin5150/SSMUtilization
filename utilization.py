@@ -77,9 +77,8 @@ if (timestamp == saved_timestamp):
     cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
     future_open_times = get_future_open_times_from_file('opentime.csv')
 
-    
-
 else:
+    print('generating data')
     block_data = create_block_data("blockslots.csv")
     block_templates = create_block_templates(block_data, 'blockTemplates.csv')
     roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms,STORRooms]

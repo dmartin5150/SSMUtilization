@@ -38,7 +38,7 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
         ref_start = datetime(curDate.year,curDate.month,curDate.day,int(7),int(0),0).astimezone(pytz.timezone("US/Central"))
         ref_end = datetime(curDate.year,curDate.month,curDate.day,int(16),int(0),0).astimezone(pytz.timezone("US/Central"))
         name = 'OPEN'
-        release_date = '1/1/2023'
+        release_date = 'N/A'
 
     filtered_procedures = get_filtered_procedures(procedures, ref_start,ref_end)
     # print('ref start', ref_start)
@@ -148,7 +148,9 @@ def get_future_open_times(start_date, end_date, procedures,unit, room, block_sch
         start_date += delta
     return unused_time
 
-
+def update_dates(future_open_times):
+    future_open_times['proc_date'] = future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
+    return future_open_times
 
 
 def create_future_open_times(start_date, dataFrameLookup, block_schedule,filename):
@@ -162,11 +164,10 @@ def create_future_open_times(start_date, dataFrameLookup, block_schedule,filenam
             unused_time = get_future_open_times(start_date, end_date, dataFrameLookup[unit],unit, room, block_schedule,unused_time)
     print('unused time', unused_time)
     unused_time.to_csv(filename)
+    unused_time = update_dates(unused_time)
     return unused_time
 
-def update_dates(future_open_times):
-    future_open_times['proc_date'] = future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
-    return future_open_times
+
 
 def get_future_open_times_from_file(filename):
     future_open_times = pd.read_csv(filename)
@@ -179,7 +180,7 @@ def get_open_times(unit, start_date, open_times):
     if (start_date.day != 1):
         start_date = date(start_date.year, start_date.month, 1)
     start_date, end_date = get_date_range_with_date(start_date,1)
-    print('open time', type(open_times), open_times.columns)
+    print('open time', type(open_times.iloc[0]['proc_date']), open_times.iloc[0]['proc_date'])
     selected_times = open_times[(open_times['unit'] == unit) & (open_times['proc_date'] >= start_date) & (open_times['proc_date'] <= end_date)]
     print (selected_times['openTimeName'])
     future_open_times = [{'id': index,'unit': row.unit,'name':row.openTimeName, 'local_start_time':row.local_start_time, 'local_end_time':row.local_end_time,
