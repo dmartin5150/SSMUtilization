@@ -102,9 +102,20 @@ def update_unit_date_times_from_file(unitData):
     # unitData['blockDate_y'] = unitData['blockDate_y'].apply(lambda x: get_procedure_date(x))
     return unitData
 
-    
+
+def update_soft_block_date_times_from_file(softBlock):
+    softBlock['procedureDtNoTime'] = softBlock['procedureDtNoTime'].apply(lambda x:get_procedure_date(x).date())
+    softBlock['startTime'] = softBlock['startTime'].apply(lambda x: get_block_date_with_timezone(x))
+    softBlock['endTime'] = softBlock['endTime'].apply(lambda x: get_block_date_with_timezone(x))
+    return softBlock
 
 
+
+def get_soft_block_data_from_file(filename):
+    softBlock = pd.read_csv(filename)
+    softBlock = update_soft_block_date_times_from_file(softBlock)
+    # print('softblock', softBlock)
+    return softBlock
 
 def get_unit_data_from_file(filename):
     unitData = pd.read_csv(filename)
@@ -112,7 +123,8 @@ def get_unit_data_from_file(filename):
     # print(unitData.dtypes)
     return unitData
 
-def create_unit_data(filename,grid_block_schedule,ud_output_filename):
+def create_unit_data(filename,grid_block_schedule,ud_output_filename,sb_output_filename):
     unitData, unitSoftBlock = get_unit_data(filename,grid_block_schedule)
     unitData.to_csv(ud_output_filename,index=False)
+    unitSoftBlock.to_csv(sb_output_filename, index=False)
     return unitData, unitSoftBlock

@@ -11,7 +11,7 @@ from blockTemplates import get_block_templates_from_file, create_block_templates
 from blockSchedule import get_schedule_from_file,create_block_schedules
 from gridBlockSchedule import get_grid_block_schedule_from_file,create_grid_block_schedule
 from blockOwner import get_num_npis,create_block_owner
-from unitData2 import get_unit_data_from_file,create_unit_data
+from unitData2 import get_unit_data_from_file,create_unit_data,get_soft_block_data_from_file
 from blockStats import  get_block_stats_procs_from_file,get_cum_block_stats_and_procs,get_filtered_block_stats
 from blockStats import convert_npis_to_int_from_file,get_block_filtered_by_date,get_block_summary, create_block_summary
 from blockFiles import get_file_timestamp,file_exists,get_saved_timestamp,write_time_stamp,write_block_json
@@ -62,20 +62,25 @@ cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
     block_schedule =  get_schedule_from_file('block_release_schedule.csv')
     block_owner = pd.read_csv('block_owner_gen.csv')
     jriData = get_unit_data_from_file('jri_gen_data.csv')
+    jriSoftBlocks = get_soft_block_data_from_file('jri_soft_block.csv')
     STMSTORData  = get_unit_data_from_file('stm_gen_data.csv')
+    STMSoftBlocks = get_soft_block_data_from_file('stm_soft_block.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
+    MTSoftBlocks = get_soft_block_data_from_file('mt_soft_block.csv')
     CSCData = get_unit_data_from_file('csc_gen_data.csv')
+    CSCSoftBlocks = get_soft_block_data_from_file('csc_soft_block.csv')
     STORData = get_unit_data_from_file('stor_gen_data.csv')
-    
+    STORSoftBlocks = get_soft_block_data_from_file('stor_soft_block.csv')
+    # print('softBlock', CSCSoftBlocks)
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
-
+    softBlockLookup = {'BH JRI': jriSoftBlocks, 'STM ST OR': STMSoftBlocks, 'MT OR':MTSoftBlocks, 'BH CSC': CSCSoftBlocks, 'ST OR':STORSoftBlocks }
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
     future_open_times = get_future_open_times_from_file('opentime.csv')
@@ -94,11 +99,11 @@ else:
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
 
     print('getting unit data')
-    jriData, jriSoftBlocks = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv')
-    STMSTORData, STMSoftBlocks = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv')
-    MTORData, MTSoftBlocks = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv')
-    CSCData, CSCSoftBlocks = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv')
-    STORData, STORSoftBlocks = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv')
+    jriData, jriSoftBlocks = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv','jri_soft_block.csv')
+    STMSTORData, STMSoftBlocks = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv', 'stm_soft_block.csv')
+    MTORData, MTSoftBlocks = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv', 'mt_soft_block.csv')
+    CSCData, CSCSoftBlocks = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv', 'csc_soft_block.csv')
+    STORData, STORSoftBlocks = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv','stor_soft_block.csv')
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     softBlockLookup = {'BH JRI': jriSoftBlocks, 'STM ST OR': STMSoftBlocks, 'MT OR':MTSoftBlocks, 'BH CSC': CSCSoftBlocks, 'ST OR':STORSoftBlocks }
     num_npis = get_num_npis(block_owner)
@@ -107,9 +112,9 @@ else:
     print('getting open times')
     future_start_date = get_procedure_date('2023-8-1').date()
     future_open_times = create_future_open_times(future_start_date, dataFrameLookup, block_schedule,'opentime.csv')
-    print('jri soft block', jriSoftBlocks)
+    # print('jri soft block', jriSoftBlocks)
     # print('STM soft block', STMSoftBlocks)
-    # print('MT soft block', MTSoftBlocks)
+    print('MT soft block', MTSoftBlocks)
     # print('csc soft blocks', CSCSoftBlocks)
     # print('STOR soft Blocks', STORSoftBlocks)
 
