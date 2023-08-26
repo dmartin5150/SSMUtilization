@@ -45,17 +45,11 @@ def filterBlockRow(row, surgeon_list):
 
 
 def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
-    # print('unique', block_stats['npis'].drop_duplicates())
     block_stats['keep'] = block_stats.apply(lambda row: filterBlockRow(row, surgeon_list),axis=1)
-    # print('filtered block stats 2', block_stats)
     block_stats = block_stats[block_stats['keep']]
-    # print('filtered block stats 3', block_stats)
     block_stats = block_stats.drop(['keep'], axis=1)
-    # print('filtered block stats 4', block_stats)
     block_stats.reset_index(inplace=True,drop=True)
-    # print('filtered block stats', block_stats)
     block_stats = pad_block_data(block_stats,start_date,unit)
-    # print('block stats after padding', block_stats)
     flexIdData = block_stats[block_stats['room'] != 'none']
     flexIds = flexIdData['id'].drop_duplicates()
     # print('flexIds', flexIds)
@@ -135,8 +129,10 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
     cum_block_procs = {}
     for unit in units:
         curStartDate = startDate
+        print('unit', unit)
         curEndDate = getEndDate(startDate)
         for x in range (startDate.month, endDate.month):
+            print('dataframe', dataFrameLookup[unit])
             procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
             # print('unit',unit,  procedures.shape)
             cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)

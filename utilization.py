@@ -46,8 +46,8 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-4-1').date()
-endDate = get_procedure_date('2023-10-1').date()
+startDate = get_procedure_date('2023-8-1').date()
+endDate = get_procedure_date('2023-9-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
 block_schedule = pd.DataFrame()
@@ -56,6 +56,7 @@ jriData = pd.DataFrame()
 STMSTORData = pd.DataFrame()
 MTORData = pd.DataFrame()
 dataFrameLookup = {}
+softBlockLookUp = {}
 num_npis = get_num_npis(block_owner)
 cum_block_stats = {}
 cum_block_procs = {}
@@ -68,11 +69,13 @@ if (timestamp != saved_timestamp):
     block_schedule =  get_schedule_from_file('block_release_schedule.csv')
     block_owner = pd.read_csv('block_owner_gen.csv')
     jriData = get_unit_data_from_file('jri_gen_data.csv')
-    STMSTORData = get_unit_data_from_file('stm_gen_data.csv')
+    STMSTORData  = get_unit_data_from_file('stm_gen_data.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
     CSCData = get_unit_data_from_file('csc_gen_data.csv')
     STORData = get_unit_data_from_file('stor_gen_data.csv')
+    
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
+
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
     future_open_times = get_future_open_times_from_file('opentime.csv')
@@ -91,20 +94,24 @@ else:
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
 
     print('getting unit data')
-    jriData = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv')
-    STMSTORData = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv')
-    MTORData = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv')
-    CSCData = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv')
-    STORData = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv')
+    jriData, jriSoftBlocks = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv')
+    STMSTORData, STMSoftBlocks = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv')
+    MTORData, MTSoftBlocks = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv')
+    CSCData, CSCSoftBlocks = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv')
+    STORData, STORSoftBlocks = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv')
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
+    softBlockLookup = {'BH JRI': jriSoftBlocks, 'STM ST OR': STMSoftBlocks, 'MT OR':MTSoftBlocks, 'BH CSC': CSCSoftBlocks, 'ST OR':STORSoftBlocks }
     num_npis = get_num_npis(block_owner)
     print('getting block stats')
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
     print('getting open times')
     future_start_date = get_procedure_date('2023-8-1').date()
     future_open_times = create_future_open_times(future_start_date, dataFrameLookup, block_schedule,'opentime.csv')
-
-
+    print('jri soft block', jriSoftBlocks)
+    # print('STM soft block', STMSoftBlocks)
+    # print('MT soft block', MTSoftBlocks)
+    # print('csc soft blocks', CSCSoftBlocks)
+    # print('STOR soft Blocks', STORSoftBlocks)
 
 def get_data(request, string):
     data_requested = request[string]
@@ -118,7 +125,6 @@ def get_open_times_async():
     unit = get_data(request.json, "unit")
     curStartDate = get_data(request.json, "startDate")
     curStartDate = get_procedure_date(curStartDate).date()
-    print(get_open_times(unit, curStartDate,future_open_times))
     return json.dumps(get_open_times(unit, curStartDate,future_open_times)), 200
 
 
@@ -136,14 +142,10 @@ def get_util_summary_async():
     selectedRooms = get_data(request.json, "selectedRooms")
     roomSelectionOption = get_data(request.json,'roomSelectionOption')
     prime_time_hours = get_data(request.json, "primeTime")
-    # total_pt_minutes = get_data(request.json, "totalPTMinutes")
     procedures = getPTProceduresWithRange(curStartDate,curEndDate, dataFrameLookup[unit])
-    # print('procedures1', procedures)
     if not selectAll:
         procedures = getfilteredPTProcedures(procedures, selectedProviders)
-        # print('procedures2', procedures)
     procedures = getfilteredRoomPTProcedures(procedures, roomSelectionOption, selectedRooms)
-    # print('procedures3', procedures)
     total_pt_minutes = get_total_pt_minutes(orLookUp[unit],procedures['room'], prime_time_hours,roomSelectionOption,selectedRooms,curStartDate, curEndDate)
     ptHours = get_prime_time_procedures_from_range(procedures, prime_time_hours['start'], prime_time_hours['end'])
     pt_totals = get_pt_totals(ptHours,total_pt_minutes,curStartDate,curEndDate,roomSelectionOption,prime_time_hours)
@@ -160,19 +162,10 @@ def get_block_totals_async():
     curEndDate = get_procedure_date(curEndDate).date()
     selectedProviders  = get_data(request.json, "selectedProviders")
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
-    # print('selected provider', selectedProviders)
-    # print('keys', cum_block_stats.keys())
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
     block_stats = cum_block_stats[block_data_string]
-
     block_stats = get_cum_block_stats_with_dates(curStartDate,curEndDate,unit,cum_block_stats)
     
-    # block_stats = cum_block_stats[block_data_string]
-    # block_stats = add_block_date(block_stats)
-    # print('block stats pre', block_stats)
-    # block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats)
-    print('block stats post', block_stats['npis'])
-    print('got block stats')
     if not(selectAll):
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
     block_stats = get_block_filtered_by_date(curStartDate, curEndDate, block_stats,selectAll)
@@ -193,9 +186,14 @@ def get_block_data_async():
     # num_npis = get_num_npis(block_owner)
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
     block_stats = cum_block_stats[block_data_string]
-    newProcList = cum_block_procs[block_data_string]
+    print('blocks stats in blocks', block_stats)
     endDate = getEndDate(startDate)
+    newProcList = cum_block_procs[block_data_string]
+    test_date = get_procedure_date('2023-8-1').date()
+    print('test date blocks', block_stats[block_stats['blockDate'] == test_date]['npis'].drop_duplicates())
+    print('block start, block end', startDate, endDate)
     if not(selectAll):
+        print('In not select all')
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)
         newProcList = get_filtered_proc_list(flexIds, startDate, endDate, newProcList)
     return json.dumps({'grid':get_block_report_hours(block_stats),'details':newProcList}), 200

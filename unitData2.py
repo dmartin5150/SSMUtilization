@@ -42,6 +42,15 @@ def create_pt_compare (unitData):
     return unitData
 
 
+def update_soft_blocks_datetimes(softBlocks):
+    softBlocks['procedureDtNoTime'] = softBlocks['procedureDate'].apply(lambda x: get_block_date_with_timezone(x).date())
+    softBlocks['startTime'] = softBlocks['startTime'].apply(lambda x:get_block_date_with_timezone(x))
+    softBlocks['startTime'] = softBlocks['startTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
+    softBlocks['endTime'] = softBlocks['endTime'].apply(lambda x:get_block_date_with_timezone(x))
+    softBlocks['endTime'] = softBlocks['endTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
+    return softBlocks
+
+
 
 def get_unit_data(filename,grid_block_schedule):
     dataCols = ['procedures[0].primaryNpi','startTime','endTime','duration','procedureDate',
@@ -50,7 +59,8 @@ def get_unit_data(filename,grid_block_schedule):
     baseData = pd.read_csv(filename, usecols=dataCols)
     # print('filename', filename, 'basedata', baseData.shape)
     baseData.rename(columns={'procedures[0].primaryNpi':'NPI','procedures[0].procedureName':'procedureName'}, inplace=True)
-
+    softBlocks = baseData[baseData['NPI'] == 0]
+    softBlocks = update_soft_blocks_datetimes(softBlocks.copy())
     surgeons = pd.read_csv('Surgeons.csv')
     dataWithSurgeonNames = baseData.merge(surgeons, left_on='NPI', right_on='npi')
     # print('filename', filename, 'after surgeons basedata', baseData.shape)
@@ -71,7 +81,9 @@ def get_unit_data(filename,grid_block_schedule):
     dataWithSurgeonNames['weekday'] = dataWithSurgeonNames['procedureDtNoTime'].apply(lambda x: x.isoweekday())
     #remove soft blocks
     dataWithSurgeonNames = dataWithSurgeonNames[dataWithSurgeonNames['npi'] != 0]
-    return dataWithSurgeonNames
+    print('npi values', dataWithSurgeonNames['npi'].drop_duplicates().sort_values())
+    
+    return dataWithSurgeonNames , softBlocks
 
 
 def update_unit_date_times_from_file(unitData):
@@ -101,6 +113,6 @@ def get_unit_data_from_file(filename):
     return unitData
 
 def create_unit_data(filename,grid_block_schedule,ud_output_filename):
-    unitData = get_unit_data(filename,grid_block_schedule)
+    unitData, unitSoftBlock = get_unit_data(filename,grid_block_schedule)
     unitData.to_csv(ud_output_filename,index=False)
-    return unitData
+    return unitData, unitSoftBlock

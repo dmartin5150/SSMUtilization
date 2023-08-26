@@ -26,6 +26,10 @@ def get_monthly_stats(npi, procedures):
 
 def get_surgeon_stats(unit,name, npi,dataFrameLookup): 
     secondary_cards = []
+    august_procedures = getProcedures(unit,'2023-8-1',dataFrameLookup)
+    # print('august procs', august_procedures)
+    august_card_data = get_monthly_stats(npi, august_procedures)
+    august_card = {'title':'August', 'data':august_card_data}
     july_procedures = getProcedures(unit,'2023-7-1',dataFrameLookup)
     # print('july procs', july_procedures)
     july_card_data = get_monthly_stats(npi, july_procedures)
@@ -39,10 +43,11 @@ def get_surgeon_stats(unit,name, npi,dataFrameLookup):
     april_procedures = getProcedures(unit,'2023-7-1',dataFrameLookup)
     april_card_data = get_monthly_stats(npi, april_procedures)
     april_card = {'title':'April', 'data':april_card_data}
-    secondary_cards.append(april_card)
+
     secondary_cards.append(may_card)
     secondary_cards.append(june_card)
+    secondary_cards.append(july_card)
   
     return {'surgeon':{'id':npi,'value':npi, 'label':name},
-            'mainCard':july_card,
+            'mainCard':august_card,
             'secondaryCards':secondary_cards}
