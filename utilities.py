@@ -24,10 +24,24 @@ def formatMinutes(minutes):
 
 def get_time(dt, tm):
     timezone = pytz.timezone("US/Central")
+   
     time_components = tm.split(':')
     hour = time_components[0][-2:]
     minutes = time_components[1]
     return timezone.localize(datetime(dt.year, dt.month, dt.day,int(hour), int(minutes), 0))
+def create_date_with_time(dt, tm):
+    # time example 10:00 AM
+    timezone = pytz.timezone("US/Central")
+    print('time', tm, 'type', type(tm))
+    time_components = tm.split(':')
+    hour = time_components[0][-2:]
+    minute_components = time_components[1].split(' ') 
+    minutes= minute_components[0]
+    print('hour', hour, 'minutes', minutes)
+    if ('PM' in minute_components[1]):
+        if (int(hour) != 12):
+            hour = int(hour) + 12
+    return timezone.localize(datetime(dt.year, dt.month, dt.day,int(hour), int(minutes), 0))   
 
 def all_dates_current_month(month,year):
     number_of_days = calendar.monthrange(year, month)[1]
