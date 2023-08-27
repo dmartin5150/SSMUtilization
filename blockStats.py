@@ -213,13 +213,7 @@ def get_block_filtered_by_date(curStartDate, curEndDate, block_stats,selectAll):
         block_stats = add_block_date(block_stats)
 
     block_stats['weekday'] = block_stats['blockDate'].apply(lambda x: x.isoweekday())
-    # print('block stats', block_stats)
     block_stats = block_stats[(block_stats['blockDate'] >= curStartDate) & (block_stats['blockDate'] <= curEndDate)]
-    # block_stats = block_stats.drop(['blockProcedureDate'], axis=1)
-    # block_stats.reset_index(inplace=True,drop=True)
-    # print('block stats 2', block_stats)
-    # print('done with stats')
-    # print( 'block date type', block_stats.iloc[0]['blockProcedureDate'])
     return block_stats
     # return block_stats[(block_stats['blockDate'] >= curStartDate) & (block_stats['blockDate'] <= curEndDate)]
 

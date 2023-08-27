@@ -48,7 +48,7 @@ def update_soft_blocks_datetimes(softBlocks):
     softBlocks['startTime'] = softBlocks['startTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     softBlocks['endTime'] = softBlocks['endTime'].apply(lambda x:get_block_date_with_timezone(x))
     softBlocks['endTime'] = softBlocks['endTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
-    softBlocks['openTimeName'] = 'SOFT'
+    softBlocks['openTimeName'] = 'SOFT BLOCK'
     softBlocks['relese_date'] = 'NA'
     softBlocks['open_type'] = 'SOFT'
     softBlocks.rename(columns={'startTime':'local_start_time', 'endTime':'local_end_time'}, inplace=True)
