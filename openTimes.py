@@ -163,7 +163,7 @@ def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_
         for room in orLookUp[unit]:
             print(room)
             unused_time = get_future_open_times(start_date, end_date, dataFrameLookup[unit],unit, room, block_schedule,unused_time)
-            unused_time = update_open_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup, unused_time)
+            unused_time = update_open_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup, unused_time)   
     unused_time.to_csv(filename)
     unused_time = update_dates(unused_time)
     return unused_time
