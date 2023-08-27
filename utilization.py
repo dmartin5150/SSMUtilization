@@ -62,7 +62,7 @@ cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp == saved_timestamp):
+if (timestamp != saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -111,7 +111,7 @@ else:
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
     print('getting open times')
     future_start_date = get_procedure_date('2023-8-1').date()
-    future_open_times = create_future_open_times(future_start_date, dataFrameLookup, block_schedule,'opentime.csv')
+    future_open_times = create_future_open_times(future_start_date, dataFrameLookup,softBlockLookup, block_schedule,'opentime.csv')
     # print('jri soft block', jriSoftBlocks)
     # print('STM soft block', STMSoftBlocks)
     print('MT soft block', MTSoftBlocks)

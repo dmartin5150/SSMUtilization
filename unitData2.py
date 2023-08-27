@@ -43,11 +43,15 @@ def create_pt_compare (unitData):
 
 
 def update_soft_blocks_datetimes(softBlocks):
-    softBlocks['procedureDtNoTime'] = softBlocks['procedureDate'].apply(lambda x: get_block_date_with_timezone(x).date())
+    softBlocks['proc_date'] = softBlocks['procedureDate'].apply(lambda x: get_block_date_with_timezone(x).date())
     softBlocks['startTime'] = softBlocks['startTime'].apply(lambda x:get_block_date_with_timezone(x))
     softBlocks['startTime'] = softBlocks['startTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     softBlocks['endTime'] = softBlocks['endTime'].apply(lambda x:get_block_date_with_timezone(x))
     softBlocks['endTime'] = softBlocks['endTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
+    softBlocks['openTimeName'] = 'SOFT'
+    softBlocks['relese_date'] = 'NA'
+    softBlocks['open_type'] = 'SOFT'
+    softBlocks.rename(columns={'startTime':'local_start_time', 'endTime':'local_end_time'}, inplace=True)
     return softBlocks
 
 
@@ -104,7 +108,7 @@ def update_unit_date_times_from_file(unitData):
 
 
 def update_soft_block_date_times_from_file(softBlock):
-    softBlock['procedureDtNoTime'] = softBlock['procedureDtNoTime'].apply(lambda x:get_procedure_date(x).date())
+    softBlock['proc_date'] = softBlock['proc_date'].apply(lambda x:get_procedure_date(x).date())
     softBlock['startTime'] = softBlock['startTime'].apply(lambda x: get_block_date_with_timezone(x))
     softBlock['endTime'] = softBlock['endTime'].apply(lambda x: get_block_date_with_timezone(x))
     return softBlock

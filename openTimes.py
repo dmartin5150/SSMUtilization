@@ -4,6 +4,7 @@ from datetime import date, timedelta,datetime
 from blockpseudoschedule import create_pseudo_schedule
 import pytz
 from utilities import formatProcedureTimes,get_procedure_date,formatMinutes, get_date_range_with_date,get_procedure_date
+from softblocks import update_open_times_from_softblocks
 
 open_time_cols = ['openTimeName', 'proc_date','local_start_time','local_end_time','unit', 'room','unused_block_minutes','formatted_minutes','open_type','release_date']
 
@@ -153,7 +154,7 @@ def update_dates(future_open_times):
     return future_open_times
 
 
-def create_future_open_times(start_date, dataFrameLookup, block_schedule,filename):
+def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_schedule,filename):
     if (start_date.day != 1):
         start_date = date(start_date.year, start_date.month, 1)
     start_date, end_date = get_date_range_with_date(start_date,2)
@@ -162,7 +163,7 @@ def create_future_open_times(start_date, dataFrameLookup, block_schedule,filenam
         for room in orLookUp[unit]:
             print(room)
             unused_time = get_future_open_times(start_date, end_date, dataFrameLookup[unit],unit, room, block_schedule,unused_time)
-    print('unused time', unused_time)
+            unused_time = update_open_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup, unused_time)
     unused_time.to_csv(filename)
     unused_time = update_dates(unused_time)
     return unused_time
