@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import date, timedelta,datetime
-from utilities import create_date_with_time,get_text_of_time
+from utilities import create_date_with_time,get_text_of_time, formatProcedureTimes, formatMinutes
 
 def get_soft_blocks(start_date, softBlocks, room):
     if (softBlocks.shape[0] == 0):
@@ -28,16 +28,29 @@ def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time,
         update_open_time_with_column('release_date', curIndex, 'REMOVE',unusedTime)
         print('adding remove')
     if ((open_start_time == soft_start_time) & (open_end_time > soft_end_time)):  
-        replacement_value = get_text_of_time(soft_end_time)
-        update_open_time_with_column('local_start_time', curIndex, replacement_value,unusedTime)
+        formatted_start = formatProcedureTimes(soft_end_time)
+        time_difference = (open_end_time - soft_end_time ).seconds/60
+        formatted_time = formatMinutes(time_difference)
+        update_open_time_with_column('local_start_time', curIndex, formatted_start, unusedTime)
+        update_open_time_with_column('unused_block_minutes', curIndex, time_difference, unusedTime)
+        update_open_time_with_column('formatted_minutes', curIndex, formatted_time, unusedTime)
         print('changing local_start 1')
     if ((open_start_time  < soft_start_time) & (open_end_time > soft_start_time) & (open_end_time <= soft_end_time)):
-        replacement_value = get_text_of_time(soft_start_time)
-        update_open_time_with_column('local_end_time', curIndex, replacement_value,unusedTime)
+        formatted_end = formatProcedureTimes(soft_start_time)
+        time_difference = (soft_start_time - open_start_time).seconds/60
+        formatted_time = formatMinutes(time_difference)
+        update_open_time_with_column('local_end_time', curIndex, formatted_end,unusedTime)
+        update_open_time_with_column('unused_block_minutes', curIndex, time_difference, unusedTime)
+        update_open_time_with_column('formatted_minutes', curIndex, formatted_time, unusedTime)
         print('changing local_end 1')
     if ((open_start_time  < soft_start_time) & (open_end_time > soft_start_time) & (open_end_time > soft_end_time)):
         replacement_value = get_text_of_time(soft_start_time)
-        update_open_time_with_column('local_end_time', curIndex, replacement_value,unusedTime)
+        formatted_end = formatProcedureTimes(soft_start_time)
+        time_difference = (soft_start_time - open_start_time).seconds/60
+        formatted_time = formatMinutes(time_difference)
+        update_open_time_with_column('local_end_time', curIndex, formatted_end,unusedTime)
+        update_open_time_with_column('unused_block_minutes', curIndex, time_difference, unusedTime)
+        update_open_time_with_column('formatted_minutes', curIndex, formatted_time, unusedTime)
         print('changing local_end 2')
         # create new open time with start time soft end time and end time at open end time
     if ((open_start_time > soft_start_time) & (open_end_time <= soft_end_time)):
@@ -45,7 +58,12 @@ def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time,
         print('adding remove')
     if ((open_start_time > soft_start_time) & (open_end_time > soft_end_time)):
         replacement_value = get_text_of_time(soft_end_time)
-        update_open_time_with_column('local_start_time 2', curIndex, replacement_value, unusedTime)
+        formatted_start = formatProcedureTimes(soft_end_time)
+        time_difference = (open_end_time-soft_end_time).seconds/60
+        formatted_time = formatMinutes(time_difference)
+        update_open_time_with_column('local_start_time 2', curIndex, formatted_end, unusedTime)
+        update_open_time_with_column('unused_block_minutes', curIndex, time_difference, unusedTime)
+        update_open_time_with_column('formatted_minutes', curIndex, formatted_time, unusedTime)
         print('changing local_start')
 
     
