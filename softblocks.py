@@ -22,10 +22,10 @@ def update_open_time_with_column(column_name, data_index, updated_value, data):
 def add_open_time(name, block_type,unit,room, block_date, start_time, end_time, release_date, unusedTime):
         curIndex = len(unusedTime.index)
         formatted_start = formatProcedureTimes(start_time)
-        formatted_end = formatProcedureTimes(start_time)
+        formatted_end = formatProcedureTimes(end_time)
         time_difference = (end_time - start_time).seconds/60
         formatted_time = formatMinutes(time_difference)
-        unusedTime.loc[curIndex]=[name,block_date, formatted_start,formatted_end, unit,room,time_difference,formatted_time,block_type, release_date]
+        unusedTime.loc[curIndex]=[name,str(block_date), formatted_start,formatted_end, unit,room,time_difference,formatted_time,block_type, release_date]
         return curIndex
 
 
