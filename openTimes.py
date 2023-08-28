@@ -167,7 +167,7 @@ def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_
             print('soft block open')
             unused_time = update_open_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup, unused_time) 
             print('block soft block open') 
-            unused_time = update_block_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup,block_schedule, unused_time) 
+            unused_time = update_block_times_from_softblocks(start_date, end_date, unit, room, block_schedule, unused_time) 
             unused_time = unused_time.sort_values(['proc_date'])
     unused_time.to_csv(filename)
     unused_time = update_dates(unused_time)

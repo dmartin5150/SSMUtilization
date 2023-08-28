@@ -84,7 +84,7 @@ def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time,
         formatted_start = formatProcedureTimes(soft_end_time)
         time_difference = (open_end_time-soft_end_time).seconds/60
         formatted_time = formatMinutes(time_difference)
-        update_open_time_with_column('local_start_time 2', curIndex, formatted_end, unusedTime)
+        update_open_time_with_column('local_start_time', curIndex, formatted_start, unusedTime)
         update_open_time_with_column('unused_block_minutes', curIndex, time_difference, unusedTime)
         update_open_time_with_column('formatted_minutes', curIndex, formatted_time, unusedTime)
         print('changing local_start')
@@ -97,26 +97,26 @@ def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time,
 
 def change_open_times(soft_date, softBlockRow, openIndexes, unusedTime,unit,room):
     recheck_blocks = False
-    print('entering change open times')
+    # print('entering change open times')
     soft_start_time = softBlockRow['local_start_time']
     soft_end_time = softBlockRow['local_end_time']
-    print('open indexes', openIndexes)
+    # print('open indexes', openIndexes)
     add_open_time('SOFT BLOCK', 'SOFT',unit,room, soft_date, soft_start_time, soft_end_time, "NA", unusedTime)   
     for curIndex in openIndexes:
         openTime = unusedTime.iloc[curIndex]
-        print('open time before', openTime)
-        print('curIndex', curIndex)
+        # print('open time before', openTime)
+        # print('curIndex', curIndex)
         open_start_time_text = openTime['local_start_time']
         open_end_time_text = openTime['local_end_time']
-        print('open type', openTime['open_type'])
-        print('end time', open_end_time_text)
+        # print('open type', openTime['open_type'])
+        # print('end time', open_end_time_text)
         open_start_time = create_date_with_time(soft_date, open_start_time_text)
         open_end_time = create_date_with_time(soft_date, open_end_time_text)
         if(compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time, open_end_time,curIndex, unusedTime)):
-            print('creating new open block', soft_date, room, soft_end_time, open_end_time )
+            # print('creating new open block', soft_date, room, soft_end_time, open_end_time )
             add_open_time('OPEN', 'OPEN',unit,room, soft_date, soft_end_time, open_end_time, "NA", unusedTime)  
             recheck_blocks = True
-        print('opentime after', unusedTime.iloc[curIndex])
+        # print('opentime after', unusedTime.iloc[curIndex])
     return recheck_blocks
 
  
@@ -130,6 +130,7 @@ def change_soft_block_from_block(soft_date, blockRow, soft_block_indexes, unused
     print('entering change open times')
     block_start_time = blockRow['start_time']
     block_end_time = blockRow['end_time']
+    print('soft block indexes', soft_block_indexes)
     for curIndex in soft_block_indexes:
         openTime = unusedTime.iloc[curIndex]
         print('open time before', openTime)
@@ -157,9 +158,9 @@ def update_open_times_from_softblocks(start_date, end_date, unit, room, softBloc
         soft_blocks = get_soft_blocks(start_date, softBlockLookup[unit], room)
         openIndexes = get_open_times(start_date, unused_time, room)
         if ((soft_blocks.shape[0] != 0) & (len(openIndexes) != 0)):
-            print('in soft blocks', soft_blocks[['local_start_time','local_end_time']])
+            # print('in soft blocks', soft_blocks[['local_start_time','local_end_time']])
             for block_row in range(soft_blocks.shape[0]):
-                print('block row', block_row)
+                # print('block row', block_row)
                 repeat_block = (change_open_times(start_date, soft_blocks.iloc[block_row], openIndexes, unused_time, unit, room))
         if (repeat_block):
             continue
@@ -167,7 +168,7 @@ def update_open_times_from_softblocks(start_date, end_date, unit, room, softBloc
 
     return unused_time[unused_time['release_date'] != 'REMOVE']
 
-def update_block_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup,block_schedule, unused_time):
+def update_block_times_from_softblocks(start_date, end_date, unit, room,block_schedule, unused_time):
     delta = timedelta(days=1)
     while start_date <= end_date:
         repeat_block = False
@@ -179,6 +180,7 @@ def update_block_times_from_softblocks(start_date, end_date, unit, room, softBlo
         soft_block_indexes = get_soft_block_indexes(start_date, unused_time, room)
         blocks  = get_block_times(start_date, block_schedule, room)
         if ((blocks.shape[0] != 0) & (len(soft_block_indexes) != 0)):
+            print('in blocks', blocks[['start_time','end_time']])
             for block_row in range(blocks.shape[0]):
                 print('block row', block_row)
                 repeat_block = (change_soft_block_from_block(start_date, blocks.iloc[block_row], soft_block_indexes, unused_time, unit, room))

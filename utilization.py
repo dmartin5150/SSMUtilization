@@ -47,7 +47,7 @@ if file_exists('blocktimestamp.txt'):
 block_templates = pd.DataFrame()
 
 startDate = get_procedure_date('2023-8-1').date()
-endDate = get_procedure_date('2023-9-1').date()
+endDate = get_procedure_date('2023-10-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
 block_schedule = pd.DataFrame()

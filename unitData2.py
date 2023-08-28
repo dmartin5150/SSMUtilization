@@ -109,8 +109,8 @@ def update_unit_date_times_from_file(unitData):
 
 def update_soft_block_date_times_from_file(softBlock):
     softBlock['proc_date'] = softBlock['proc_date'].apply(lambda x:get_procedure_date(x).date())
-    softBlock['startTime'] = softBlock['startTime'].apply(lambda x: get_block_date_with_timezone(x))
-    softBlock['endTime'] = softBlock['endTime'].apply(lambda x: get_block_date_with_timezone(x))
+    softBlock['local_start_time'] = softBlock['local_start_time'].apply(lambda x: get_block_date_with_timezone(x))
+    softBlock['local_end_time'] = softBlock['local_end_time'].apply(lambda x: get_block_date_with_timezone(x))
     return softBlock
 
 
