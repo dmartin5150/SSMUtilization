@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import date, timedelta,datetime
 from blockpseudoschedule import create_pseudo_schedule
 import pytz
-from utilities import formatProcedureTimes,get_procedure_date,formatMinutes, get_date_range_with_date,get_procedure_date
+from utilities import formatProcedureTimes,get_procedure_date,formatMinutes, get_date_range_with_date,get_procedure_date, get_block_date_with_timezone
 from softblocks import update_block_times_from_softblocks, update_open_times_from_softblocks
 
 
@@ -152,6 +152,7 @@ def get_future_open_times(start_date, end_date, procedures,unit, room, block_sch
 
 def update_dates(future_open_times):
     future_open_times['proc_date'] = future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
+    future_open_times['open_start_time'] = future_open_times['open_start_time'].apply(lambda x: get_block_date_with_timezone(x) )
     return future_open_times
 
 

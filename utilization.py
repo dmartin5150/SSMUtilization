@@ -62,7 +62,7 @@ cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
