@@ -150,11 +150,14 @@ def get_future_open_times(start_date, end_date, procedures,unit, room, block_sch
         start_date += delta
     return unused_time
 
-def update_dates(future_open_times):
+def update_dates_from_file(future_open_times):
     future_open_times['proc_date'] = future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
     future_open_times['open_start_time'] = future_open_times['open_start_time'].apply(lambda x: get_block_date_with_timezone(x) )
     return future_open_times
 
+def update_dates(future_open_times):
+    future_open_times['proc_date'] = future_open_times['proc_date'].apply(lambda x:get_procedure_date(x).date())
+    return future_open_times
 
 def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_schedule,filename):
     if (start_date.day != 1):
@@ -179,7 +182,7 @@ def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_
 
 def get_future_open_times_from_file(filename):
     future_open_times = pd.read_csv(filename,dtype={'release_date':str})
-    future_open_times = update_dates(future_open_times)
+    future_open_times = update_dates_from_file(future_open_times)
     print(future_open_times['release_date'])
     return future_open_times
 

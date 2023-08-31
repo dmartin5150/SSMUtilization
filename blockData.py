@@ -39,7 +39,8 @@ def get_block_data(block_data):
     block_data = block_data[(block_data['room'].isin(jriRooms)) | (block_data['room'].isin(stmSTORRooms)) 
                             | (block_data['room'].isin(MTORRooms)) | (block_data['room'].isin(CSCRooms)) |
                             (block_data['room'].isin(STORRooms))].copy()
-    closed_rooms = block_data[(block_data['flexId'] == -1)]
+    # closed_rooms = block_data[(block_data['flexId'] == -1)]
+    # closed_rooms.to_csv('closed_rooms.csv')
     block_data = block_data[(block_data['type'] == 'Surgeon') | (block_data['type'] == 'Surgical Specialty')
                             | (block_data['type'] == 'Surgeon Group')].copy()
     return block_data
