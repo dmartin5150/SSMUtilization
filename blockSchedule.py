@@ -109,10 +109,12 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 if curData.empty:
                     continue 
                 curData['blockDate'] =d
+                # print('date', d, 'curWOM', curWOM,'dow', curDOW)
                 if (curData.shape[0] > 1):
                     print(d, curDOW, curWOM,room)
                     print(curData[curData.duplicated(['blockName'],keep=False)])
                     curData = remove_overlapping_blocks(curData)
+                
                 # closed = curData[curData['flexId'] == -1]
                 # if not closed.empty:
                 #     print(d, curDOW, curWOM,room)
@@ -123,10 +125,10 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 block_schedule = block_schedule.append(curData)
         if ((d.isoweekday() == 6) & (first_day_of_month)):
-            curWOM = 1
-            first_day_of_month = False
+            curWOM = 1 
         elif (d.isoweekday() == 6):
             curWOM +=1
+        first_day_of_month = False
 
     block_no_release = block_schedule
     block_schedule['releaseDays'] = block_schedule['releaseDays'].apply(lambda x: x/1440)
@@ -169,6 +171,7 @@ def get_block_schedule(startDate,endDate, block_templates,roomLists):
         final_block_schedule = pd.concat([final_block_schedule, cur_block_schedule])
         final_no_release_schedule = pd.concat([final_no_release_schedule, cur_no_release])
         # final_no_release_schedule.append(cur_no_release)
+
     return final_no_release_schedule, final_block_schedule
 
 
@@ -195,6 +198,9 @@ def get_schedule_from_file(filename):
 
 def create_block_schedules(startDate, endDate,block_templates, roomLists,bs_ouput_filename, bnr_output_filename):
     block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
+    print('CLOSED BLOCKS', block_no_release[(block_no_release['unit']== 'BH JRI') & (block_no_release['flexId'] == -1)])
+    block_no_release = block_no_release.drop_duplicates(subset=['blockName','unit','room','start_time','end_time','blockDate'])
+    block_schedule = block_schedule.drop_duplicates(subset=['blockName','unit','room','start_time','end_time','blockDate'])
     block_no_release.to_csv(bnr_output_filename,index=False)
     block_schedule.to_csv(bs_ouput_filename,index=False)
     return block_no_release, block_schedule

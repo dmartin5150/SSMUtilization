@@ -1,8 +1,11 @@
 import pandas as pd
 
 
-curFile = pd.read_csv('blockTemplates.csv')
-kurtz_blocks = curFile[curFile['blockName'].str.contains('Kurtz')][['flexId','start_time','end_time','room','dow','wom1','wom2','wom3','wom4','wom5','state','start_date', 'end_date']]
-print(kurtz_blocks[(kurtz_blocks.duplicated(['room','dow','wom1','wom2','wom3','wom4', 'wom5'], keep=False)) &
-                   (kurtz_blocks['state'] == 'ACTIVE')].sort_values(by=['room','dow', 'wom1','wom2','wom3','wom4', 'wom5']))
+curFile = pd.read_csv('block_no_release.csv')
+print(curFile.columns)
+jri_sched = curFile[(curFile['room'] == 'BH JRI 02') & (curFile['flexId'] == -1)][['room','blockName','blockDate','start_date','end_date','dow','wom1','wom2','wom3','wom4','wom5','releaseDate']].sort_values(by=['releaseDate','room','dow','wom1','wom2','wom3','wom4','wom5'])
+jri_sched.to_csv('block_JRI_Closed_scheduled.csv')
+print(jri_sched)
+# print('curFile', curFile[(curFile['room'] == 'BH JRI 02') & (curFile['flexId'] == -1)][['room','start_date','end_date','dow','wom1','wom2','wom3','wom4','wom5','releaseDate']].sort_values(by=['releaseDate','room','dow','wom1','wom2','wom3','wom4','wom5']))
+# print('curFile', jri_sched[(jri_sched['room'] == 'BH JRI 02')][['room','blockName','blockDate', 'start_date','releaseDate','end_date','dow','wom1','wom2','wom3','wom4','wom5',]].sort_values(by=['releaseDate','blockName','dow','wom1','wom2','wom3','wom4','wom5']))
 # print(curFile.columns)

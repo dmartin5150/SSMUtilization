@@ -46,7 +46,7 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-4-1').date()
+startDate = get_procedure_date('2023-9-1').date()
 endDate = get_procedure_date('2023-10-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
@@ -92,8 +92,6 @@ else:
     roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms,STORRooms]
     print('getting block schedule')
     block_no_release, block_schedule =  create_block_schedules(startDate, endDate,block_templates, roomLists,'block_release_schedule.csv', 'block_no_release.csv')
-    block_no_release = block_no_release.drop_duplicates(subset=['blockName','unit','start_time','end_time','blockDate'])
-    block_schedule = block_schedule.drop_duplicates(subset=['blockName','unit','start_time','end_time','blockDate'])
     print('getting block owners')
     grid_block_schedule = create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, 'grid_block_schedule.csv')
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
@@ -228,6 +226,7 @@ def get_details_async():
     print('getting details')
     data = dataFrameLookup[unit]
     block_details = get_block_details_data(room,date_requested,block_schedule)
+    print('block details', block_details)
     room_details = get_room_details(unit, date_requested, room, data,prime_time_hours['start'], prime_time_hours['end'])
     return json.dumps({'room':room_details, 'block':block_details}), 200
 

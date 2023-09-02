@@ -42,7 +42,7 @@ def get_block_data(block_data):
     # closed_rooms = block_data[(block_data['flexId'] == -1)]
     # closed_rooms.to_csv('closed_rooms.csv')
     block_data = block_data[(block_data['type'] == 'Surgeon') | (block_data['type'] == 'Surgical Specialty')
-                            | (block_data['type'] == 'Surgeon Group')].copy()
+                            | (block_data['type'] == 'Surgeon Group') | (block_data['flexId'] == -1)].copy()
     return block_data
 
 
