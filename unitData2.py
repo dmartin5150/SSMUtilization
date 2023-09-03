@@ -85,7 +85,8 @@ def get_unit_data(filename,grid_block_schedule):
     dataWithSurgeonNames['weekday'] = dataWithSurgeonNames['procedureDtNoTime'].apply(lambda x: x.isoweekday())
     #remove soft blocks
     dataWithSurgeonNames = dataWithSurgeonNames[dataWithSurgeonNames['npi'] != 0]
-    print('npi values', dataWithSurgeonNames['npi'].drop_duplicates().sort_values())
+    procDate =  datetime.strptime('2023-09-08', '%Y-%m-%d').date()
+    print('grid data', dataWithSurgeonNames[(dataWithSurgeonNames['procedureDtNoTime'] >= procDate)]['procedureDtNoTime'])
     
     return dataWithSurgeonNames , softBlocks
 

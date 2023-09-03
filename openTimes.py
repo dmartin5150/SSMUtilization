@@ -36,6 +36,8 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
         ref_end = curBlock['end_time']
         name = curBlock['blockName']
         release_date = curBlock['releaseDate'].date()
+        if ('CLOSED' in curBlock['blockName']):
+            open_type = 'CLOSED'
     else:
         ref_start = datetime(curDate.year,curDate.month,curDate.day,int(7),int(0),0).astimezone(pytz.timezone("US/Central"))
         ref_end = datetime(curDate.year,curDate.month,curDate.day,int(16),int(0),0).astimezone(pytz.timezone("US/Central"))

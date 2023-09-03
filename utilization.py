@@ -97,7 +97,9 @@ else:
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
 
     print('getting unit data')
+    print('jri')
     jriData, jriSoftBlocks = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv','jri_soft_block.csv')
+    print('stm stor')
     STMSTORData, STMSoftBlocks = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv', 'stm_soft_block.csv')
     MTORData, MTSoftBlocks = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv', 'mt_soft_block.csv')
     CSCData, CSCSoftBlocks = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv', 'csc_soft_block.csv')
