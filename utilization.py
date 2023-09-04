@@ -27,7 +27,7 @@ from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
 from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
-from findroom import get_procedure_stats
+from findroom import create_procedure_stats
 
 
 app = Flask(__name__)
@@ -57,12 +57,13 @@ STMSTORData = pd.DataFrame()
 MTORData = pd.DataFrame()
 dataFrameLookup = {}
 softBlockLookUp = {}
+roomStatsLookUp = {}
 num_npis = get_num_npis(block_owner)
 cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp == saved_timestamp):
+if (timestamp != saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -70,7 +71,7 @@ if (timestamp == saved_timestamp):
     block_owner = pd.read_csv('block_owner_gen.csv')
     jriData = get_unit_data_from_file('jri_gen_data.csv')
     jriSoftBlocks = get_soft_block_data_from_file('jri_soft_block.csv')
-    get_procedure_stats(jriData.copy(),jriRooms)
+
     STMSTORData  = get_unit_data_from_file('stm_gen_data.csv')
     STMSoftBlocks = get_soft_block_data_from_file('stm_soft_block.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
@@ -98,15 +99,19 @@ else:
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
 
     print('getting unit data')
-    print('jri')
     jriData, jriSoftBlocks = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv','jri_soft_block.csv')
-    print('stm stor')
+    jriRoomStats = create_procedure_stats(jriData.copy(),jriRooms,'jriRoomStats.csv')
     STMSTORData, STMSoftBlocks = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv', 'stm_soft_block.csv')
+    STMSTORRoomStats = create_procedure_stats(STMSTORData.copy(),stmSTORRooms,'stmSTORRoomStats.csv')
     MTORData, MTSoftBlocks = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv', 'mt_soft_block.csv')
+    MTORRoomStats = create_procedure_stats(MTORData.copy(),MTORRooms,'MTORRoomStats.csv')
     CSCData, CSCSoftBlocks = create_unit_data('CSCData.csv',grid_block_schedule,'csc_gen_data.csv', 'csc_soft_block.csv')
+    CSCRoomStats = create_procedure_stats(CSCData.copy(),CSCRooms,'CSCRoomStats.csv')
     STORData, STORSoftBlocks = create_unit_data('STORData.csv',grid_block_schedule,'stor_gen_data.csv','stor_soft_block.csv')
+    STORRoomStats = create_procedure_stats(STORData.copy(),STORRooms, 'STORRoomStats.csv')
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     softBlockLookup = {'BH JRI': jriSoftBlocks, 'STM ST OR': STMSoftBlocks, 'MT OR':MTSoftBlocks, 'BH CSC': CSCSoftBlocks, 'ST OR':STORSoftBlocks }
+    roomStatsLookUp = {'BH JRI': jriRoomStats, 'STM ST OR': STMSTORRoomStats, 'MT OR': MTORRoomStats, 'BH CSC':CSCRoomStats, 'ST OR':STORRoomStats}
     num_npis = get_num_npis(block_owner)
     print('getting block stats')
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
@@ -115,7 +120,7 @@ else:
     future_open_times = create_future_open_times(future_start_date, dataFrameLookup,softBlockLookup, block_schedule,'opentime.csv')
     # print('jri soft block', jriSoftBlocks)
     # print('STM soft block', STMSoftBlocks)
-    print('MT soft block', MTSoftBlocks)
+    # print('MT soft block', MTSoftBlocks)
     # print('csc soft blocks', CSCSoftBlocks)
     # print('STOR soft Blocks', STORSoftBlocks)
 
@@ -123,7 +128,10 @@ def get_data(request, string):
     data_requested = request[string]
     return data_requested
 
-
+@app.route('/roomstats', methods=['POST'])
+def get_room_stats_async():
+    unit = get_data(request.json, "unit")
+    return json.dumps(roomStatsLookUp[unit]), 200
 
 
 @app.route('/opentimes', methods=['POST'])
@@ -263,4 +271,4 @@ def get_pt_hours_async():
 
 
 
-# app.run(host='0.0.0.0', port=5001)
+app.run(host='0.0.0.0', port=5001)
