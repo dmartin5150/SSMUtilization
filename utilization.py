@@ -27,7 +27,7 @@ from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
 from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
-
+from findroom import get_procedure_stats
 
 
 app = Flask(__name__)
@@ -62,7 +62,7 @@ cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -70,6 +70,7 @@ if (timestamp != saved_timestamp):
     block_owner = pd.read_csv('block_owner_gen.csv')
     jriData = get_unit_data_from_file('jri_gen_data.csv')
     jriSoftBlocks = get_soft_block_data_from_file('jri_soft_block.csv')
+    get_procedure_stats(jriData.copy(),jriRooms)
     STMSTORData  = get_unit_data_from_file('stm_gen_data.csv')
     STMSoftBlocks = get_soft_block_data_from_file('stm_soft_block.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
@@ -262,4 +263,4 @@ def get_pt_hours_async():
 
 
 
-app.run(host='0.0.0.0', port=5001)
+# app.run(host='0.0.0.0', port=5001)
