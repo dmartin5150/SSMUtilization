@@ -27,7 +27,7 @@ from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
 from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
-from findroom import create_procedure_stats
+from findroom import create_procedure_stats, get_room_stats_from_file
 
 
 app = Flask(__name__)
@@ -63,7 +63,7 @@ cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -71,18 +71,24 @@ if (timestamp != saved_timestamp):
     block_owner = pd.read_csv('block_owner_gen.csv')
     jriData = get_unit_data_from_file('jri_gen_data.csv')
     jriSoftBlocks = get_soft_block_data_from_file('jri_soft_block.csv')
+    jriRoomStats = get_room_stats_from_file('jriRoomStats.csv')
 
     STMSTORData  = get_unit_data_from_file('stm_gen_data.csv')
     STMSoftBlocks = get_soft_block_data_from_file('stm_soft_block.csv')
+    STMSTORRoomStats = get_room_stats_from_file('stmSTORRoomStats.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
     MTSoftBlocks = get_soft_block_data_from_file('mt_soft_block.csv')
+    MTORRoomStats = get_room_stats_from_file('MTORRoomStats.csv')
     CSCData = get_unit_data_from_file('csc_gen_data.csv')
     CSCSoftBlocks = get_soft_block_data_from_file('csc_soft_block.csv')
+    CSCRoomStats = get_room_stats_from_file('CSCRoomStats.csv')
     STORData = get_unit_data_from_file('stor_gen_data.csv')
     STORSoftBlocks = get_soft_block_data_from_file('stor_soft_block.csv')
+    STORRoomStats = get_room_stats_from_file('STORRoomStats.csv')
     # print('softBlock', CSCSoftBlocks)
     dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORData, 'BH CSC': CSCData, 'ST OR':STORData}
     softBlockLookup = {'BH JRI': jriSoftBlocks, 'STM ST OR': STMSoftBlocks, 'MT OR':MTSoftBlocks, 'BH CSC': CSCSoftBlocks, 'ST OR':STORSoftBlocks }
+    roomStatsLookUp = {'BH JRI': jriRoomStats, 'STM ST OR': STMSTORRoomStats, 'MT OR': MTORRoomStats, 'BH CSC':CSCRoomStats, 'ST OR':STORRoomStats}
     num_npis = get_num_npis(block_owner)
     cum_block_stats, cum_block_procs = get_block_stats_procs_from_file(startDate,endDate)
     future_open_times = get_future_open_times_from_file('opentime.csv')

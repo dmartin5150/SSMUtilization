@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np
+
 
 
 room_stats_cols = ['unit', 'room', 'procedureName', 'usage','duration_mean', 'duration_std']
@@ -23,3 +23,6 @@ def create_procedure_stats(procedures,rooms,filename):
 
     room_stats.to_csv(filename)
     return room_stats
+
+def get_room_stats_from_file(filename):
+    return pd.read_csv(filename)
