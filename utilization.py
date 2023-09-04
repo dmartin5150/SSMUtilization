@@ -46,7 +46,7 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-9-1').date()
+startDate = get_procedure_date('2023-4-1').date()
 endDate = get_procedure_date('2023-10-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
@@ -63,7 +63,7 @@ cum_block_stats = {}
 cum_block_procs = {}
 future_open_times = pd.DataFrame()
 
-if (timestamp == saved_timestamp):
+if (timestamp != saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -96,10 +96,13 @@ if (timestamp == saved_timestamp):
 else:
     print('generating data')
     block_data = create_block_data("blockslots.csv")
+    print('block_data', block_data.columns)
     block_templates = create_block_templates(block_data, 'blockTemplates.csv')
+    print('block templates', block_templates.columns)
     roomLists = [jriRooms,stmSTORRooms,MTORRooms,CSCRooms,STORRooms]
     print('getting block schedule')
     block_no_release, block_schedule =  create_block_schedules(startDate, endDate,block_templates, roomLists,'block_release_schedule.csv', 'block_no_release.csv')
+    print('block schedule', block_schedule.columns)
     print('getting block owners')
     grid_block_schedule = create_grid_block_schedule(startDate, endDate, roomLists, block_schedule, 'grid_block_schedule.csv')
     block_owner = create_block_owner("blockowners.csv", 'block_owner_gen.csv')
@@ -123,6 +126,7 @@ else:
     cum_block_stats, cum_block_procs = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
     print('getting open times')
     future_start_date = get_procedure_date('2023-8-1').date()
+    print('block columns', block_schedule.columns)
     future_open_times = create_future_open_times(future_start_date, dataFrameLookup,softBlockLookup, block_schedule,'opentime.csv')
     # print('jri soft block', jriSoftBlocks)
     # print('STM soft block', STMSoftBlocks)

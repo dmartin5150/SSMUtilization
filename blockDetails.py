@@ -10,7 +10,7 @@ def printType(date):
 def get_block_details_data(room, blockDate, data):
     curDate = get_procedure_date(blockDate).date()
     block_data = data[(data['room'] == room) & (data['blockDate'] == curDate)]
-    print('pre block data', block_data)
+    # print('pre block data', block_data)
     if block_data.empty:
         return []
     else:

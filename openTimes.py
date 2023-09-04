@@ -132,7 +132,7 @@ def get_future_open_times(start_date, end_date, procedures,unit, room, block_sch
             continue
         curProcs = get_cur_procs(start_date,room,procedures)
         curProcs = create_pseudo_schedule(curProcs)
-        blocks = get_blocks(start_date,room,block_schedule)
+        blocks = get_blocks(start_date,room,block_schedule.copy())
         if (blocks.shape[0] != 0):
             blocks = blocks.apply(lambda row: update_block_dates(start_date, row), axis=1)
             block_procs = curProcs.copy()
@@ -168,11 +168,11 @@ def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_
     unused_time =pd.DataFrame(columns=open_time_cols)
     for unit in units:
         for room in orLookUp[unit]:
-            print(room)
+            # print(room)
             unused_time = get_future_open_times(start_date, end_date, dataFrameLookup[unit],unit, room, block_schedule,unused_time)
-            print('soft block open')
+            # print('soft block open')
             unused_time = update_open_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup, unused_time) 
-            print('block soft block open') 
+            # print('block soft block open') 
             unused_time = update_block_times_from_softblocks(start_date, end_date, unit, room, block_schedule, unused_time) 
             unused_time = unused_time.sort_values(['proc_date'])
     unused_time = unused_time.drop_duplicates()
@@ -185,7 +185,7 @@ def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_
 def get_future_open_times_from_file(filename):
     future_open_times = pd.read_csv(filename,dtype={'release_date':str})
     future_open_times = update_dates_from_file(future_open_times)
-    print(future_open_times['release_date'])
+    # print(future_open_times['release_date'])
     return future_open_times
 
 
@@ -193,9 +193,9 @@ def get_open_times(unit, start_date, open_times):
     if (start_date.day != 1):
         start_date = date(start_date.year, start_date.month, 1)
     start_date, end_date = get_date_range_with_date(start_date,1)
-    print('open time', type(open_times.iloc[0]['proc_date']), open_times.iloc[0]['proc_date'])
+    # print('open time', type(open_times.iloc[0]['proc_date']), open_times.iloc[0]['proc_date'])
     selected_times = open_times[(open_times['unit'] == unit) & (open_times['proc_date'] >= start_date) & (open_times['proc_date'] <= end_date)]
-    print (selected_times['openTimeName'])
+    # print (selected_times['openTimeName'])
     future_open_times = [{'id': index,'unit': row.unit,'name':row.openTimeName, 'local_start_time':row.local_start_time, 'local_end_time':row.local_end_time,
                           'room':row.room, 'unused_block_minutes':row.unused_block_minutes, 'formatted_minutes':row.formatted_minutes, 
                           'open_type':row.open_type, 'proc_date': str(row.proc_date), 'release_date':str(row.release_date), 'open_start_time':row.open_start_time.strftime('%Y-%m-%dT%H:%M:%SZ')

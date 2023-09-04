@@ -29,8 +29,11 @@ def fill_empty_data(num_frequencies, data):
         data =fill_column(f'frequencies[{x}].state','Empty',data)
     return data
 
-
-
+# Closed rooms are blocks with no types.  Need to add one
+def updateClosedBlockType(row):
+    if (row['flexId'] == -1):
+        return'CLOSED'
+    return row['type']
 
 def get_block_data(block_data):
     num_frequencies = get_num_frequencies(block_data)
@@ -43,6 +46,7 @@ def get_block_data(block_data):
     # closed_rooms.to_csv('closed_rooms.csv')
     block_data = block_data[(block_data['type'] == 'Surgeon') | (block_data['type'] == 'Surgical Specialty')
                             | (block_data['type'] == 'Surgeon Group') | (block_data['flexId'] == -1)].copy()
+    block_data['type'] = block_data.apply(lambda row: updateClosedBlockType(row), axis=1)
     return block_data
 
 

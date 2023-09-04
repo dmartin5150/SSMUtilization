@@ -55,28 +55,28 @@ def remove_overlapping_blocks(blocks):
     updated_blocks = pd.DataFrame(columns=block_search_cols)
     not_overlapped = pd.DataFrame(columns=block_search_cols)
     curBlocks = pd.DataFrame(columns=block_search_cols)
-    print(blocks.columns)
+    # print(blocks.columns)
     blockNames = blocks[blocks.duplicated(['blockName'],keep=False)]['blockName'].drop_duplicates().values.tolist()
 
     for name in blockNames:
         curBlocks = blocks[(blocks['blockName'] == name)].reset_index(drop=True)
-        print('pre', curBlocks)
+        # print('pre', curBlocks)
         updated_block = curBlocks.iloc[0].copy()
-        print('updated block', updated_block)
+        # print('updated block', updated_block)
         for curIndex in range(1,curBlocks.shape[0]):
             cur_block = curBlocks.iloc[curIndex]
             if (cur_block['start_time'] < updated_block['start_time']):
                 updated_block['start_time'] = cur_block['start_time']
             if (cur_block['end_time'] > updated_block['end_time']):
                 updated_block['end_time'] = cur_block['end_time']
-        print('appending block', updated_block)
+        # print('appending block', updated_block)
         updated_blocks= updated_blocks.append(updated_block)
-        print('post', updated_blocks)
+        # print('post', updated_blocks)
     not_overlapped = blocks[~blocks.duplicated(['blockName'],keep=False)]
-    print('not_overlapped', not_overlapped)
+    # print('not_overlapped', not_overlapped)
     if not not_overlapped.empty:
         updated_blocks = pd.concat([updated_blocks, not_overlapped])
-    print('updated_blocks', updated_blocks)
+    # print('updated_blocks', updated_blocks)
     return updated_blocks
 
     
@@ -92,7 +92,7 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
     curWOM = 1
     c = Calendar()
     first_day_of_month = True
-    print('closed blocks', block_templates[block_templates['flexId'] == -1])
+    # print('closed blocks', block_templates[block_templates['flexId'] == -1])
     for d in [x for x in c.itermonthdates(2023, curMonth) if x.month == curMonth]:
         if first_day_of_month:
             curTemplates = update_block_templates_from_date(block_templates, d)
@@ -111,18 +111,18 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 curData['blockDate'] =d
                 # print('date', d, 'curWOM', curWOM,'dow', curDOW)
                 if (curData.shape[0] > 1):
-                    print(d, curDOW, curWOM,room)
-                    print(curData[curData.duplicated(['blockName'],keep=False)])
+                    # print(d, curDOW, curWOM,room)
+                    # print(curData[curData.duplicated(['blockName'],keep=False)])
                     curData = remove_overlapping_blocks(curData)
                 
                 # closed = curData[curData['flexId'] == -1]
                 # if not closed.empty:
                 #     print(d, curDOW, curWOM,room)
                 #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
-                kurtz = curData[curData['blockName'].str.contains('Kurtz')]
-                if not kurtz.empty:
-                    print(d, curDOW, curWOM,room)
-                    print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
+                # kurtz = curData[curData['blockName'].str.contains('Kurtz')]
+                # if not kurtz.empty:
+                    # print(d, curDOW, curWOM,room)
+                    # print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 block_schedule = block_schedule.append(curData)
         if ((d.isoweekday() == 6) & (first_day_of_month)):
             curWOM = 1 
@@ -193,12 +193,12 @@ def update_time_dates_from_file(block_schedule):
 def get_schedule_from_file(filename):
     block_schedule = pd.read_csv(filename)
     block_schedule = update_time_dates_from_file(block_schedule)
-    print('block schedule', type(block_schedule.iloc[0]['blockDate']))
+    # print('block schedule', type(block_schedule.iloc[0]['blockDate']))
     return block_schedule
 
 def create_block_schedules(startDate, endDate,block_templates, roomLists,bs_ouput_filename, bnr_output_filename):
     block_no_release, block_schedule = get_block_schedule(startDate,endDate, block_templates,roomLists) 
-    print('CLOSED BLOCKS', block_no_release[(block_no_release['unit']== 'BH JRI') & (block_no_release['flexId'] == -1)])
+    # print('CLOSED BLOCKS', block_no_release[(block_no_release['unit']== 'BH JRI') & (block_no_release['flexId'] == -1)])
     block_no_release = block_no_release.drop_duplicates(subset=['blockName','unit','room','start_time','end_time','blockDate'])
     block_schedule = block_schedule.drop_duplicates(subset=['blockName','unit','room','start_time','end_time','blockDate'])
     block_no_release.to_csv(bnr_output_filename,index=False)

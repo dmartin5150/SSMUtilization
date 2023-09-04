@@ -26,8 +26,8 @@ def getEndDate(startDate):
 
 def getPTProcedures(startDate, data):
     endDate = getEndDate(startDate)
-    print('start date', startDate, 'end date', endDate)
-    print('data', data.columns, data.shape)
+    # print('start date', startDate, 'end date', endDate)
+    # print('data', data.columns, data.shape)
     procedures = data[(data['procedureDtNoTime']>= startDate) & (data['procedureDtNoTime'] < endDate)]
     return procedures
 
