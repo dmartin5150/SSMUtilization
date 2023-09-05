@@ -27,7 +27,7 @@ from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
 from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
-from findroom import create_procedure_stats, get_room_stats_from_file
+from findroom import create_procedure_stats, get_room_stats_from_file,create_roomstats_summary
 
 
 app = Flask(__name__)
@@ -128,11 +128,7 @@ else:
     future_start_date = get_procedure_date('2023-8-1').date()
     print('block columns', block_schedule.columns)
     future_open_times = create_future_open_times(future_start_date, dataFrameLookup,softBlockLookup, block_schedule,'opentime.csv')
-    # print('jri soft block', jriSoftBlocks)
-    # print('STM soft block', STMSoftBlocks)
-    # print('MT soft block', MTSoftBlocks)
-    # print('csc soft blocks', CSCSoftBlocks)
-    # print('STOR soft Blocks', STORSoftBlocks)
+
 
 def get_data(request, string):
     data_requested = request[string]
@@ -141,7 +137,10 @@ def get_data(request, string):
 @app.route('/roomstats', methods=['POST'])
 def get_room_stats_async():
     unit = get_data(request.json, "unit")
-    return json.dumps(roomStatsLookUp[unit]), 200
+    roomStats = roomStatsLookUp[unit]
+    roomStatsSummary = create_roomstats_summary(roomStats)
+    print('summary', roomStatsSummary)
+    return json.dumps(roomStatsSummary), 200
 
 
 @app.route('/opentimes', methods=['POST'])
