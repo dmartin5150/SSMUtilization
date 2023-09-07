@@ -27,7 +27,7 @@ from surgeonStats import get_surgeon_stats
 from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats_with_dates
 from blockProcedureList import get_filtered_proc_list
 from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
-from findroom import create_procedure_stats, get_room_stats_from_file,create_roomstats_summary,get_room_no_surgeon
+from findroom import create_procedure_stats, get_room_stats_from_file,create_roomstats_summary,get_room_no_surgeon,get_room_stats
 
 
 app = Flask(__name__)
@@ -134,6 +134,18 @@ else:
 def get_data(request, string):
     data_requested = request[string]
     return data_requested
+
+
+
+@app.route('/openrooms')
+def get_open_rooms_asnyc():
+    unit = get_data(request.json, "unit")
+    curStartDate = get_data(request.json, "startDate")
+    curStartDate = get_procedure_date(curStartDate).date()
+    procedure_name = get_data(request.json, "procedureName")
+    room_stats = roomStatsLookUp[unit]
+    open_rooms = get_room_no_surgeon(room_stats, future_open_times, curStartDate, unit, procedure_name)
+    return json.dumps(get_room_stats(open_rooms)), 200
 
 @app.route('/roomstats', methods=['POST'])
 def get_room_stats_async():

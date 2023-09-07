@@ -30,6 +30,7 @@ def create_procedure_stats(procedures,rooms,filename):
 
 
 
+
 def get_room_no_surgeon(room_stats, open_time, start_date, unit, procedure_name):
     print('start date', start_date, 'type', type(start_date))
     print(type(open_time.iloc[0]['proc_date']))
@@ -39,6 +40,17 @@ def get_room_no_surgeon(room_stats, open_time, start_date, unit, procedure_name)
                                (open_time['open_type'] == 'OPEN') & (open_time['unused_block_minutes'] >= duration)]
     print('curStats', cur_stats)
     print('open times', cur_open_times)
+
+
+
+def get_room_stats(open_times):
+
+    room_stat_summary = [{'id': index, 'openTimeName': row.openTimeName, 'unit': row.unit,'name':row.openTimeName, 'local_start_time':row.local_start_time, 'local_end_time':row.local_end_time,
+                          'room':row.room, 'unused_block_minutes':row.unused_block_minutes, 'formatted_minutes':row.formatted_minutes, 
+                          'open_type':row.open_type, 'proc_date': str(row.proc_date), 'release_date':str(row.release_date), 'open_start_time':row.open_start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+                          } for index, row in open_times.iterrows()] 
+    return room_stat_summary
+
 
 
 
