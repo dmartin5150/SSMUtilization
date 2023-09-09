@@ -126,6 +126,17 @@ def get_next_year(curMonth, curYear):
 
 block_id_owner_cols = ['id','blockType','npis']
 
+def remove_brackets(x):
+    if (len(x) == 0):
+        return 0
+    return x[0]
+
+def clean_up_block_id_owners(block_id_owners):
+    block_id_owners.drop_duplicates(subset='id', inplace=True)
+    block_id_owners = block_id_owners[block_id_owners['blockType'] == 'Surgeon']
+    block_id_owners['npis'] = block_id_owners['npis'].apply(lambda x: remove_brackets(x))
+    return block_id_owners
+
 def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis):
     cum_block_stats = {}
     cum_block_procs = {}
@@ -152,7 +163,7 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
             string_date = f"{next_year}-{next_month}-1"
             curStartDate = get_procedure_date(string_date).date()
             curEndDate = getEndDate(curStartDate)
-    block_id_owners.drop_duplicates(subset='id', inplace=True)
+    block_id_owners = clean_up_block_id_owners(block_id_owners)
     print('block id owners', block_id_owners)
     block_id_owners.to_csv('block_id_owners.csv')
     return cum_block_stats, cum_block_procs, block_id_owners
