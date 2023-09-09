@@ -124,9 +124,12 @@ def get_next_year(curMonth, curYear):
     else:
         return curYear + 1
 
+block_id_owner_cols = ['id','blockType','npis']
+
 def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis):
     cum_block_stats = {}
     cum_block_procs = {}
+    block_id_owners = pd.DataFrame(columns=block_id_owner_cols)
     for unit in units:
         curStartDate = startDate
         print('unit', unit)
@@ -141,14 +144,22 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
             block_stats.to_csv(f"{curStartDate.month}_{curStartDate.year}_{unit}.csv",index=False)
+            new_blocks = block_stats[['id','blockType','npis']]
+            block_id_owners = pd.concat([new_blocks,block_id_owners])
             write_block_json(newProcList, f"{curStartDate.month}_{curStartDate.year}_{unit}.txt")
             next_month = get_next_month(curStartDate.month)
             next_year = get_next_year(curStartDate.month,curStartDate.year)
             string_date = f"{next_year}-{next_month}-1"
             curStartDate = get_procedure_date(string_date).date()
             curEndDate = getEndDate(curStartDate)
-    return cum_block_stats, cum_block_procs
+    block_id_owners.drop_duplicates(subset='id', inplace=True)
+    print('block id owners', block_id_owners)
+    block_id_owners.to_csv('block_id_owners.csv')
+    return cum_block_stats, cum_block_procs, block_id_owners
 
+
+def get_block_id_owner_from_file():
+    return pd.read_csv('block_id_owners.csv')
 
 def update_block_dates_from_file(df):
     df['blockDate'] = df['blockDate'].apply(lambda x: get_procedure_date(x))

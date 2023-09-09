@@ -43,6 +43,9 @@ def get_room_no_surgeon(room_stats, open_time, start_date, unit, procedure_name)
 
 
 
+
+
+
 def get_room_stats(open_times):
 
     room_stat_summary = [{'id': index, 'openTimeName': row.openTimeName, 'unit': row.unit,'name':row.openTimeName, 'local_start_time':row.local_start_time, 'local_end_time':row.local_end_time,
