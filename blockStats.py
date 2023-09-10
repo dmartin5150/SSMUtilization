@@ -127,14 +127,28 @@ def get_next_year(curMonth, curYear):
 block_id_owner_cols = ['id','blockType','npis']
 
 def remove_brackets(x):
-    if (len(x) == 0):
+    # print(x['id'], x['npis'], type(x['npis']))
+    if (isinstance(x['npis'],str)):
         return 0
-    return x[0]
+    elif (len(x['npis']) == 0):
+        print(1)
+        return 1
+    else:
+        curVal=  x['npis'][0]
+        print('cur val', curVal)
+        return curVal
+
+
+def combine_with_surgeons(block_id_owners):
+    surgeons = pd.read_csv('Surgeons.csv')
+    block_id_owners = block_id_owners.merge(surgeons, how='left', left_on='npis', right_on='npi')
+    return block_id_owners                    
+
 
 def clean_up_block_id_owners(block_id_owners):
     block_id_owners.drop_duplicates(subset='id', inplace=True)
     block_id_owners = block_id_owners[block_id_owners['blockType'] == 'Surgeon']
-    block_id_owners['npis'] = block_id_owners['npis'].apply(lambda x: remove_brackets(x))
+    block_id_owners['npis'] = block_id_owners.apply(lambda row: remove_brackets(row), axis=1)
     return block_id_owners
 
 def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis):
@@ -164,6 +178,7 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
             curStartDate = get_procedure_date(string_date).date()
             curEndDate = getEndDate(curStartDate)
     block_id_owners = clean_up_block_id_owners(block_id_owners)
+    block_id_owners = combine_with_surgeons(block_id_owners)
     print('block id owners', block_id_owners)
     block_id_owners.to_csv('block_id_owners.csv')
     return cum_block_stats, cum_block_procs, block_id_owners
