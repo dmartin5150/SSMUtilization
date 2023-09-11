@@ -1,8 +1,9 @@
 import pandas as pd;
-from datetime import date
+from datetime import date, datetime
 from flask import Flask, flash, request, redirect, render_template, send_from_directory,abort
 from flask_cors import CORS
 import json
+
 
 from facilityconstants import jriRooms, stmSTORRooms,MTORRooms,orLookUp,CSCRooms,STORRooms
 from utilities import get_procedure_date
@@ -65,7 +66,7 @@ future_open_times = pd.DataFrame()
 block_id_owners = pd.DataFrame()
 
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -76,6 +77,8 @@ if (timestamp != saved_timestamp):
     jriRoomStats = get_room_stats_from_file('jriRoomStats.csv')
 
     STMSTORData  = get_unit_data_from_file('stm_gen_data.csv')
+    procDate =  datetime.strptime('2023-09-05', '%Y-%m-%d').date()
+    print('STMSTOR proc', STMSTORData[(STMSTORData['procedureDtNoTime'] == procDate)][['room', 'procedureName','procedureDtNoTime']])
     STMSoftBlocks = get_soft_block_data_from_file('stm_soft_block.csv')
     STMSTORRoomStats = get_room_stats_from_file('stmSTORRoomStats.csv')
     MTORData = get_unit_data_from_file('mt_gen_data.csv')
@@ -115,6 +118,8 @@ else:
     jriData, jriSoftBlocks = create_unit_data('JRIData.csv',grid_block_schedule,'jri_gen_data.csv','jri_soft_block.csv')
     jriRoomStats = create_procedure_stats(jriData.copy(),jriRooms,'jriRoomStats.csv')
     STMSTORData, STMSoftBlocks = create_unit_data('STMSTORData.csv',grid_block_schedule,'stm_gen_data.csv', 'stm_soft_block.csv')
+    procDate =  datetime.strptime('2023-09-05', '%Y-%m-%d').date()
+    print('STMSTOR proc', STMSTORData[(STMSTORData['procedureName'].str.contains('CRANIOTOMY'))][['room', 'procedureName','procedureDtNoTime', 'procedureDate']])
     STMSTORRoomStats = create_procedure_stats(STMSTORData.copy(),stmSTORRooms,'stmSTORRoomStats.csv')
     MTORData, MTSoftBlocks = create_unit_data('MTORData.csv',grid_block_schedule,'mt_gen_data.csv', 'mt_soft_block.csv')
     MTORRoomStats = create_procedure_stats(MTORData.copy(),MTORRooms,'MTORRoomStats.csv')

@@ -6,19 +6,20 @@ from utilities import get_block_date_with_timezone,get_procedure_date,cast_to_cs
 from utilities import create_zulu_datetime_from_string_format2, convert_zulu_to_central_time_from_date, get_date_from_datetime,get_procedure_date_with_time
 
 def convert_unit_datetime_strings_to_dates(unitData):
-    unitData['procedureDate'] = unitData['procedureDate'].apply(lambda x: create_zulu_datetime_from_string_format2(x))
+    # unitData['procedureDate'] = unitData['procedureDate'].apply(lambda x: create_zulu_datetime_from_string_format2(x))
     unitData['startTime'] = unitData['startTime'].apply(lambda x: create_zulu_datetime_from_string_format2(x))
     unitData['endTime'] = unitData['endTime'].apply(lambda x: create_zulu_datetime_from_string_format2(x))
     return unitData
 
 def convert_unit_datetime_to_central_time(unitData):
-    unitData['procedureDate'] = unitData['procedureDate'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
+    # unitData['procedureDate'] = unitData['procedureDate'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     unitData['local_start_time'] = unitData['startTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     unitData['local_end_time'] = unitData['endTime'].apply(lambda x: convert_zulu_to_central_time_from_date(x))
     return unitData
 
 def convert_start_end_datetime_to_date_only(unitData):
-    unitData['blockDate'] = unitData['procedureDate'].apply(lambda x: get_date_from_datetime(x))
+    unitData['blockDate'] = unitData['procedureDate'].apply(lambda x: x)
+    # unitData['blockDate'] = unitData['procedureDate'].apply(lambda x: get_date_from_datetime(x))
     unitData['procedureDtNoTime'] = unitData['local_start_time'].apply(lambda x: get_date_from_datetime(x))
     return unitData
 
@@ -100,7 +101,8 @@ def update_unit_date_times_from_file(unitData):
     unitData['local_end_time'] = unitData['local_end_time'].apply(lambda x: get_block_date_with_timezone(x))
     unitData['local_end_time'] = unitData['local_end_time'].apply(lambda x: cast_to_cst(x))
     # unitData['local_start_time'] = unitData['local_start_time'].apply(lambda x: datetime.fromtimestamp(x))
-    unitData['blockDate_x'] = unitData['blockDate_x'].apply(lambda x: get_procedure_date(x).date())
+    # unitData['blockDate_x'] = unitData['blockDate_x'].apply(lambda x: get_procedure_date(x).date())
+    unitData['blockDate_x'] = unitData['blockDate_x'].apply(lambda x: get_block_date_with_timezone(x).date())
     unitData['procedureDtNoTime'] = unitData['procedureDtNoTime'].apply(lambda x:get_procedure_date(x).date())
     unitData['ptStart'] = unitData['ptStart'].apply(lambda x: cast_to_cst(get_block_date_with_timezone(x)))
     unitData['ptEnd'] = unitData['ptEnd'].apply(lambda x: cast_to_cst(get_block_date_with_timezone(x)))
@@ -124,12 +126,14 @@ def get_soft_block_data_from_file(filename):
 
 def get_unit_data_from_file(filename):
     unitData = pd.read_csv(filename)
+
     unitData = update_unit_date_times_from_file(unitData)
     # print(unitData.dtypes)
     return unitData
 
 def create_unit_data(filename,grid_block_schedule,ud_output_filename,sb_output_filename):
     unitData, unitSoftBlock = get_unit_data(filename,grid_block_schedule)
+
     unitData.to_csv(ud_output_filename,index=False)
     unitSoftBlock.to_csv(sb_output_filename, index=False)
     return unitData, unitSoftBlock

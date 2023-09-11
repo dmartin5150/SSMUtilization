@@ -25,10 +25,14 @@ def getEndDate(startDate):
     
 
 def getPTProcedures(startDate, data):
+    print('in get pt procedures', startDate)
     endDate = getEndDate(startDate)
     # print('start date', startDate, 'end date', endDate)
     # print('data', data.columns, data.shape)
     procedures = data[(data['procedureDtNoTime']>= startDate) & (data['procedureDtNoTime'] < endDate)]
+    procDate =  datetime.strptime('2023-09-05', '%Y-%m-%d').date()
+    print('STMSTOR proc', data[(data['procedureDtNoTime'] == procDate)][['room', 'procedureName','procedureDtNoTime']])
+    # print('STMSTOR proc', procedures[(procedures['procedureDtNoTime'] == procDate) & (procedures['room'] == 'STM ST OR 09')])
     return procedures
 
 def getPTProceduresWithRange(startDate, endDate, data):
