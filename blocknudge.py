@@ -33,26 +33,30 @@ all_npis = all_blocks['NPI']
 # print(all_blocks)
 
 def checkValidNPI(npi, row):
-    print('row', row['npis'])
+    # print('row', row['npis'])
     if (row['npis'] == '[]'):
         return False
     # print('row', row)
-    print('pre')
+    # print('pre')
     curNpi = row['npis'].strip('[,]')
-    print('post')
+    # print('post')
     if (str(npi) == curNpi):
         return True
     return False
-
+curBlocks = pd.DataFrame()
 for unit in units:
     for month in months:
         curFile = month + "_2023_" + unit + ".csv"
         curdata = pd.read_csv(curFile)
-        curdata = curdata[curdata['blockType'] == 'Surgeon']
+        curdata = curdata[(curdata['blockType'] == 'Surgeon') & (curdata['type'] == 'ALL')]
         for npi in all_npis:
             curdata = pd.read_csv(curFile)
-            curdata = curdata[curdata['blockType'] == 'Surgeon']
-            print('npi', curdata['npis'])
+            curdata = curdata[(curdata['blockType'] == 'Surgeon') & (curdata['type'] == 'ALL')]
+            # print('npi', curdata['npis'])
             curdata['inBlock'] = curdata.apply(lambda row: checkValidNPI(npi, row), axis=1)
+            curdata['npi'] = npi
             curdata = curdata[curdata['inBlock'] == True]
-            print(unit, curFile, npi, curdata.shape)
+            curdata.drop(['inBlock','npis'], axis=1,inplace=True)
+            curBlocks= curBlocks.append(curdata)
+            # print(unit, curFile, npi, curdata.shape)
+print(curBlocks)
