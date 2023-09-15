@@ -1,10 +1,5 @@
 import pandas as pd
 
-
-
-
-
-
 def checkValidNPI(npi, row):
     if (row['npis'] == '[]'):
         return False
