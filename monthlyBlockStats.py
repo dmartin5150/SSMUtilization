@@ -1,36 +1,9 @@
 import pandas as pd
 
-units = ['BH JRI','STM ST OR', 'MT OR','BH CSC','ST OR']
-months = ['6','7','8','9']
 
 
 
-elite = pd.read_csv('TNNAS  Surgeons - Elite.csv')
-toa = pd.read_csv('TNNAS  Surgeons - TOA.csv')
-howell_allen = pd.read_csv('TNNAS  Surgeons - Howell Allen.csv')
 
-
-block_owners = pd.read_csv('block_id_owners.csv')
-elite_npi = elite['NPI']
-# print(elite_npi)
-
-elite_blocks = block_owners.merge(elite_npi, how='inner', left_on='npi', right_on='NPI')
-# print(elite_blocks)
-
-howell_allen_npi = howell_allen['NPI']
-
-howell_allen_blocks = block_owners.merge(howell_allen_npi, how='inner', left_on='npi', right_on='NPI')
-# print(howell_allen_blocks)
-
-toa_npi = toa['NPI']
-
-toa_blocks = block_owners.merge(toa_npi, how='inner', left_on='npi', right_on='NPI')
-# print(toa_blocks)
-
-all_blocks = pd.concat([elite_blocks, howell_allen_blocks])
-all_blocks = pd.concat([all_blocks, toa_blocks ])
-all_npis = all_blocks['NPI']
-# print(all_blocks)
 
 def checkValidNPI(npi, row):
     if (row['npis'] == '[]'):
@@ -40,10 +13,21 @@ def checkValidNPI(npi, row):
         return True
     return False
 
-def getMonthlyBlockData(units, months, surgeon_group):
+def getBlockOwner(surgeon_group):
     block_owners = pd.read_csv('block_id_owners.csv')
     blocks_with_owners = block_owners.merge(surgeon_group, how='inner', left_on='npi', right_on='NPI')
-    all_npis = blocks_with_owners['NPI']
+    return block_owners
+
+
+def getNPIandBlocks(block_owners, group):
+    all_npis = group['NPI']
+    print('all npis', all_npis)
+    all_blocks = block_owners.merge(all_npis, how='inner', left_on='npi', right_on='NPI')
+    return all_npis, all_blocks
+
+def getMonthlyBlockData(units, months, surgeon_group):
+    block_owners = getBlockOwner(surgeon_group)
+    all_npis, all_blocks = getNPIandBlocks(block_owners, surgeon_group)
     curBlocks = pd.DataFrame()
     for unit in units:
         for month in months:
@@ -73,4 +57,3 @@ def getMonthlyBlockData(units, months, surgeon_group):
     print(curBlocks.sort_values(by=['unit', 'NPI', 'month']))
     return curBlocks
 
-getMonthlyBlockData(units, months, toa)
