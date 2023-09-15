@@ -16,12 +16,11 @@ def checkValidNPI(npi, row):
 def getBlockOwner(surgeon_group):
     block_owners = pd.read_csv('block_id_owners.csv')
     blocks_with_owners = block_owners.merge(surgeon_group, how='inner', left_on='npi', right_on='NPI')
-    return block_owners
+    return blocks_with_owners
 
 
 def getNPIandBlocks(block_owners, group):
     all_npis = group['NPI']
-    print('all npis', all_npis)
     all_blocks = block_owners.merge(all_npis, how='inner', left_on='npi', right_on='NPI')
     return all_npis, all_blocks
 
@@ -51,9 +50,8 @@ def getMonthlyBlockData(units, months, surgeon_group):
                 npiData.drop(['inBlock','npis'], axis=1,inplace=True)
                 curBlocks= curBlocks.append({'flexId':flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':bt_minutes,'nbt_minutes':nbt_minutes, 'total_minute':total_minutes, 'utilization':utilization}, ignore_index=True)
                 # print(unit, curFile, npi, curdata.shape)
-    curBlocks=curBlocks.merge(all_blocks,  left_on='npi', right_on='NPI')
-
-    curBlocks.drop(['npis', 'npi_x','npi_x', 'id', 'blockType'], axis=1, inplace=True)
-    print(curBlocks.sort_values(by=['unit', 'NPI', 'month']))
+    curBlocks=curBlocks.merge(all_blocks,  left_on='npi', right_on='npi')
+    curBlocks.drop(['npis', 'NPI_x','NPI_y', 'id', 'blockType', 'Unnamed: 0'], axis=1, inplace=True)
+    print(curBlocks.sort_values(by=['unit', 'npi', 'month']))
     return curBlocks
 
