@@ -71,5 +71,6 @@ def getMonthlyBlockData(units, months, surgeon_group):
 
     curBlocks.drop(['npis', 'npi_x','npi_x', 'id', 'blockType'], axis=1, inplace=True)
     print(curBlocks.sort_values(by=['unit', 'NPI', 'month']))
+    return curBlocks
 
 getMonthlyBlockData(units, months, toa)
