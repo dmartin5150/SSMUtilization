@@ -37,4 +37,5 @@ all_blocks = pd.concat([all_blocks, toa_blocks ])
 all_npis = all_blocks['NPI']
 # print(all_blocks)
 
-getMonthlyBlockData(units, months, toa)
+monthly_block_data = getMonthlyBlockData(units, months, elite)
+print(monthly_block_data)
