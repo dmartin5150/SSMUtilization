@@ -59,8 +59,10 @@ def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
     curDates = npiData['blockDate'].to_list()
     for curDate in curDates:
          curdata = npiData[npiData['blockDate'] == curDate].copy()
+         releaseDate = curdata.iloc[0]['releaseDate']
+         room = curdata.iloc[0]['room']
          baseData = getBlockData(curdata)
-         dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate}, ignore_index=True)
+         dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'room':room, 'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate,'releaseDate':releaseDate}, ignore_index=True)
     return dailyBlocks
 
 

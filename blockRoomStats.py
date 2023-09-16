@@ -3,29 +3,29 @@ from blockProcedureList import updateProcedureLists
 from blockpseudoschedule import create_pseudo_schedule
 from blockUsage import get_block_usage
 
-def get_block_minutes(procedures,unit, data, block_date,room,block_stats,room_type,npis):
+def get_block_minutes(procedures,unit, data, block_date,room,block_stats,room_type,npis,releaseDate):
     pseudo_schedule = create_pseudo_schedule(procedures)
     bt_minutes, nbt_minutes, total_minutes = get_block_usage(pseudo_schedule, data['blockStartTime'], data['blockEndTime'],room_type,data['flexId'])
     if total_minutes == 0:
         utilization = '0%'
     else:
         utilization = str(round(bt_minutes/total_minutes*100,0)) +'%'
-    block_stats.loc[len(block_stats.index)]=[data['flexId'],block_date,unit,room,utilization,bt_minutes, nbt_minutes, total_minutes, room_type,data['blockType'],'2023-1-1','2023-1-1',npis]
+    block_stats.loc[len(block_stats.index)]=[data['flexId'],block_date,unit,room,utilization,bt_minutes, nbt_minutes, total_minutes, room_type,data['blockType'],'2023-1-1','2023-1-1',npis,releaseDate]
 
     return block_stats
 
-def get_all_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
+def get_all_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList,releaseDate):
     curNpis = npis
     if len(npis) == 0:
         curNpis = '[0]'
     procedures = get_all_block_procedures(procedure_data,npis,block_date)
     procList = updateProcedureLists(curRow,unit,room, block_date, procedures.copy(),'ALL',procList)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'ALL',curNpis)
+    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'ALL',curNpis,releaseDate)
 
-def get_in_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
+def get_in_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList,releaseDate):
     procedures = get_in_room_block_procedures(procedure_data,npis,block_date,room)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'IN',npis), procList 
+    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'IN',npis,releaseDate), procList 
 
-def get_out_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList):
+def get_out_room_block_stats(curRow,unit, procedure_data,npis, block_date, room,block_stats,procList,releaseDate):
     procedures = get_out_room_block_procedures(procedure_data,npis,block_date,room)
-    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'OUT',npis), procList  
+    return get_block_minutes(procedures,unit, curRow, block_date,room,block_stats,'OUT',npis,releaseDate), procList  

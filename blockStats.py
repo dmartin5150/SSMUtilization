@@ -10,7 +10,7 @@ from primeTimeProcedures import getPTProcedures,getEndDate
 from blockSchedule import get_block_schedule,get_block_schedule_from_date
 from blockFiles import write_block_json,read_block_json
 
-block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime','npis']
+block_stats_cols = ['id', 'blockDate','unit', 'room', 'utilization', 'bt_minutes', 'nbt_minutes','total_minutes', 'type','blockType','blockStartTime','blockEndTime','npis','releaseDate']
 
 def get_blocks_from_unit(block_schedule, unit):
     return block_schedule[block_schedule['unit'] == unit]
@@ -91,13 +91,15 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
         for room in block_rooms:
             daily_block_data = block_data[(block_data['blockDate'] == block_date) &
                                     (block_data['room'] == room)]
+            print('daily block data', daily_block_data.columns)
             for x in range(daily_block_data.shape[0]):
                 curRow = daily_block_data.iloc[x]
                 npis = get_owner_npis (block_owner, curRow['flexId'],num_npis)
+                releaseDate = curRow['releaseDate']
                 # if selectAll: 
-                block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
-                block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
-                block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
+                block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list,releaseDate)
+                block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list,releaseDate)
+                block_stats, procedure_list = get_out_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list,releaseDate)
                 # elif check_selected_npis(npis, selectedNPIs):
                 #     block_stats = get_all_block_stats(curRow,unit, procedure_data,npis,block_date,room,block_stats,procedure_list)
                 #     block_stats,procedure_list = get_in_room_block_stats(curRow,unit,procedure_data,npis,block_date,room,block_stats,procedure_list)
