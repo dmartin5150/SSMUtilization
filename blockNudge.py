@@ -1,6 +1,6 @@
 import pandas as pd
 from monthlyBlockStats import getNudgeBlockData
-
+from monthlyOpenTimes import get_monthly_unused_block
 
 
 
@@ -37,5 +37,7 @@ all_blocks = pd.concat([all_blocks, toa_blocks ])
 all_npis = all_blocks['NPI']
 # print(all_blocks)
 
-monthly_block_data,daily_block_data = getNudgeBlockData(units, months, elite)
-print(daily_block_data)
+monthly_block_data,daily_block_data = getNudgeBlockData(units, months, howell_allen)
+flexIds = monthly_block_data['flexId'].drop_duplicates().to_list()
+unused_times = get_monthly_unused_block(flexIds, months)
+print(unused_times.columns)

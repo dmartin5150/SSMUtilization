@@ -21,12 +21,12 @@ def check_block_id(block_id, flexIds):
 
 
 def get_start_end_dates(months):
-    start_month = months[0]
+    start_month = int(months[0])
     start_dom = 1
     today = datetime.date.today()
     start_year = today.year 
     start_date = get_procedure_date(f'{start_year}-{start_month}-{start_dom}').date()
-    end_month = months[-1] + 1
+    end_month = int(months[-1]) + 1
     end_dom = 1
     if (end_month == 12):
         end_year = start_year + 1
