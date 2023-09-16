@@ -1,5 +1,14 @@
 import pandas as pd
 
+class BasicBlockData:
+    bt_minutes =  -1
+    nbt_minutes = -1
+    total_minutes = -1
+    flexId = -1
+    utilization = -1
+
+
+
 def checkValidNPI(npi, row):
     if (row['npis'] == '[]'):
         return False
@@ -30,26 +39,41 @@ def updateNPIData(curdata,npi):
         npiData['npi'] = npi
         return npiData[npiData['inBlock'] == True]
 
-def getCurBlocks(unit, month, npi, npiData,curBlocks):
-    bt_minutes = npiData['bt_minutes'].sum()
-    nbt_minutes = npiData['nbt_minutes'].sum()
-    total_minutes = npiData['total_minutes'].sum()
-    flexId = npiData.iloc[0]['id']
-    utilization = 0
-    if (total_minutes != 0):
-        utilization = str(round(bt_minutes/total_minutes * 100,1)) +'%'
-    npiData.drop(['inBlock','npis'], axis=1,inplace=True)
-    return curBlocks.append({'flexId':flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':bt_minutes,'nbt_minutes':nbt_minutes, 'total_minute':total_minutes, 'utilization':utilization}, ignore_index=True)
+def getBlockData( npiData):
+    blockData = BasicBlockData()
+    blockData.bt_minutes = npiData['bt_minutes'].sum()
+    blockData.nbt_minutes = npiData['nbt_minutes'].sum()
+    blockData.total_minutes = npiData['total_minutes'].sum()
+    blockData.flexId = npiData.iloc[0]['id']
+    blockData.utilization = 0
+    if (blockData.total_minutes != 0):
+        blockData.utilization = str(round(blockData.bt_minutes/blockData.total_minutes * 100,1)) +'%'
+    return blockData
+
+
+def getMonthlyBlockData(unit,month,npi,npiData,curBlocks):
+    baseData = getBlockData(npiData)
+    return curBlocks.append({'flexId':baseData.flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization}, ignore_index=True)
+
+def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
+    curDates = npiData['blockDate'].to_list()
+    for curDate in curDates:
+         curdata = npiData[npiData['blockDate'] == curDate].copy()
+         baseData = getBlockData(curdata)
+         dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate}, ignore_index=True)
+    return dailyBlocks
+
 
 def formatCurBlocks(curBlocks,all_blocks):
     curBlocks=curBlocks.merge(all_blocks,  left_on='npi', right_on='npi')
     curBlocks.drop(['npis', 'NPI_x','NPI_y', 'id', 'blockType', 'Unnamed: 0'], axis=1, inplace=True)
     return curBlocks.sort_values(by=['unit', 'npi', 'month'])
 
-def getMonthlyBlockData(units, months, surgeon_group):
+def getNudgeBlockData(units, months, surgeon_group):
     block_owners = getBlockOwner(surgeon_group)
     all_npis, all_blocks = getNPIandBlocks(block_owners, surgeon_group)
-    curBlocks = pd.DataFrame()
+    monthlyBlocks = pd.DataFrame()
+    dailyBlocks = pd.DataFrame()
     for unit in units:
         for month in months:
             curdata = getMonthlyData(unit,month)
@@ -57,8 +81,10 @@ def getMonthlyBlockData(units, months, surgeon_group):
                 npiData = updateNPIData(curdata,npi)
                 if npiData.empty:
                     continue
-                curBlocks= getCurBlocks(unit, month, npi, npiData,curBlocks)
-    return formatCurBlocks(curBlocks,all_blocks)
+                monthlyBlocks= getMonthlyBlockData(unit, month, npi, npiData,monthlyBlocks)
+                dailyBlocks = getDailyBlocks(unit, month, npi, npiData,dailyBlocks)
+    monthlyBlocks = formatCurBlocks(monthlyBlocks,all_blocks)
+    return monthlyBlocks, dailyBlocks
 
 
 
