@@ -10,7 +10,7 @@ def get_block_minutes(procedures,unit, data, block_date,room,block_stats,room_ty
         utilization = '0%'
     else:
         utilization = str(round(bt_minutes/total_minutes*100,0)) +'%'
-    block_stats.loc[len(block_stats.index)]=[data['flexId'],block_date,unit,room,utilization,bt_minutes, nbt_minutes, total_minutes, room_type,data['blockType'],'2023-1-1','2023-1-1',npis,releaseDate]
+    block_stats.loc[len(block_stats.index)]=[data['flexId'],block_date,unit,room,utilization,bt_minutes, nbt_minutes, total_minutes, room_type,data['blockType'],str(data['start_time']),str(data['end_time']),npis,releaseDate]
 
     return block_stats
 
