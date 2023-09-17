@@ -10,6 +10,8 @@ dataFrameLookup = {'BH JRI': jriData, 'STM ST OR': STMSTORData, 'MT OR': MTORDat
 
 
 def getNudgeProcedureData(curRow,curDate, unit, nudgeProcedures):
+
+
     procedureList = dataFrameLookup[unit]
     curNpi = curRow['npi']
     curRoom = curRow['room']
@@ -25,10 +27,12 @@ def getNudgeProcedureData(curRow,curDate, unit, nudgeProcedures):
 def getNudgeProcedures(units, nudgeBlocks):
     nudgeProcedures = pd.DataFrame()
     blockDates = nudgeBlocks['blockDate'].to_list()
+    print('getting data')
     for curDate in blockDates:
         curBlocks = nudgeBlocks[(nudgeBlocks['blockDate'] == curDate)]
         for x in range(curBlocks.shape[0]):
             for unit in units: 
+                # print('in unit', unit, curDate)
                 curRow = curBlocks.iloc[x]
                 nudgeProcedures = getNudgeProcedureData(curRow,curDate, unit, nudgeProcedures)
     return nudgeProcedures

@@ -7,7 +7,7 @@ from nudgeProcedures import getNudgeProcedures
 
 
 units = ['BH JRI','STM ST OR', 'MT OR','BH CSC','ST OR']
-months = ['6','7','8','9']
+months = ['7','8','9','10']
 
 
 
@@ -38,8 +38,19 @@ all_blocks = pd.concat([all_blocks, toa_blocks ])
 all_npis = all_blocks['NPI']
 # print(all_blocks)
 
-monthly_block_data,daily_block_data = getNudgeBlockData(units, months, howell_allen)
+
+def writeDataToSheet(filename, sheetName,blockData,startRow):
+    excelName = filename
+    writer = pd.ExcelWriter(excelName, engine='xlsxwriter')
+    if (startRow == 0):
+        blockData.to_excel(writer, sheet_name=sheetName, index=False)
+    else:
+        blockData.to_excel(writer, sheet_name=sheetName, startrow= startRow , index=False)
+    writer.save()
+
+fileName = 'toa.xlsx'
+monthly_block_data,daily_block_data = getNudgeBlockData(units, months, toa)
 flexIds = monthly_block_data['flexId'].drop_duplicates().to_list()
 unused_times = get_monthly_unused_block(flexIds, months)
 procedures = getNudgeProcedures(units, daily_block_data)
-print(procedures)
+writeDataToSheet(fileName, 'overview',monthly_block_data,0)
