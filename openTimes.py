@@ -166,7 +166,7 @@ def update_dates(future_open_times):
 def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_schedule,filename):
     if (start_date.day != 1):
         start_date = date(start_date.year, start_date.month, 1)
-    start_date, end_date = get_date_range_with_date(start_date,2)
+    start_date, end_date = get_date_range_with_date(start_date,3)
     unused_time =pd.DataFrame(columns=open_time_cols)
     for unit in units:
         for room in orLookUp[unit]:

@@ -1,4 +1,5 @@
 import pandas as pd
+from utilities import get_procedure_date
 
 class BasicBlockData:
     bt_minutes =  -1
@@ -57,17 +58,24 @@ def getMonthlyBlockData(unit,month,npi,npiData,curBlocks):
 
 def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
     curDates = npiData['blockDate'].to_list()
+    print('npi data columns', npiData.columns)
     for curDate in curDates:
          curdata = npiData[npiData['blockDate'] == curDate].copy()
          releaseDate = curdata.iloc[0]['releaseDate']
          room = curdata.iloc[0]['room']
+         startTimeDate = curdata.iloc[0]['blockStartTime'].split(' ')
+         startTime= startTimeDate[1]
+        #  print('start time type', type(startTime))
+         endTimeDate = curdata.iloc[0]['blockEndTime'].split(' ')
+         endTime= endTimeDate[1]
          baseData = getBlockData(curdata)
-         dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'room':room, 'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate,'releaseDate':releaseDate}, ignore_index=True)
+         dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'room':room, 'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate,'startTime': startTime, 'endTime': endTime, 'releaseDate':releaseDate}, ignore_index=True)
     return dailyBlocks
 
 
 def formatCurBlocks(curBlocks,all_blocks):
     curBlocks=curBlocks.merge(all_blocks,  left_on='npi', right_on='npi')
+    curBlocks['month']=curBlocks['month'].apply(lambda x: int(x))
     curBlocks.drop(['npis', 'NPI_x','NPI_y', 'id', 'blockType', 'Unnamed: 0'], axis=1, inplace=True)
     return curBlocks.sort_values(by=['unit', 'npi', 'month'])
 
@@ -79,6 +87,7 @@ def getNudgeBlockData(units, months, surgeon_group):
     for unit in units:
         for month in months:
             curdata = getMonthlyData(unit,month)
+
             for npi in all_npis:
                 npiData = updateNPIData(curdata,npi)
                 if npiData.empty:
@@ -87,6 +96,29 @@ def getNudgeBlockData(units, months, surgeon_group):
                 dailyBlocks = getDailyBlocks(unit, month, npi, npiData,dailyBlocks)
     monthlyBlocks = formatCurBlocks(monthlyBlocks,all_blocks)
     return monthlyBlocks, dailyBlocks
+
+def getSummaryMonthlyBlocks(monthlyBlocks):
+    flexIds = monthlyBlocks['flexId'].to_list()
+    summaryBlock = pd.DataFrame()
+    months = {}
+    for flexId in flexIds:
+        curblocks = monthlyBlocks[monthlyBlocks['flexId'] == flexId].sort_values(by='month')
+        months = {}
+        for x in range(1,curblocks.shape[0]):
+            curMonth = curblocks.iloc[x]['month']
+            print('curmonth', type(curMonth), curMonth,(curMonth == '7'))
+            if (curMonth == '7'):
+                months['July'] = curblocks.iloc[x]['utilization']
+            if(curMonth == '8'):
+                months['August'] = curblocks.iloc[x]['utilization']
+            if(curMonth == '9'):
+                months['September'] = curblocks.iloc[x]['utilization']
+            if(curMonth == '10'):
+                months['October'] = curblocks.iloc[x]['utilization']
+        print('months', months)
+    summaryBlock = summaryBlock.append({'Surgeon':curblocks['fullName'], 'unit':curblocks['unit']}, ignore_index=True)
+    return summaryBlock
+                    
 
 
 
