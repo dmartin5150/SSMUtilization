@@ -51,13 +51,16 @@ def writeDataToSheet(sheetName,blockData,startRow,writer):
 fileName = 'toa.xlsx'
 writer = pd.ExcelWriter(fileName, engine='xlsxwriter')
 monthly_block_data,daily_block_data = getNudgeBlockData(units, months, toa)
+print('got montly data')
 surgeonList,flexIdList = getSurgeonList(monthly_block_data.copy())
 monthlySummary = monthly_block_data[['TOA Surgeon','utilization','month']].sort_values(by=['TOA Surgeon','month'])
+
 writeDataToSheet('Monthly',monthlySummary,0,writer)
 flexIds = monthly_block_data['flexId'].drop_duplicates().to_list()
 unused_times = get_monthly_unused_block(flexIds, months)
 print('unused time', unused_times.columns)
 procedures = getNudgeProcedures(units, daily_block_data)
+print('got nudge procedures')
 procedures['procDate'] = procedures['procDate'].apply(lambda x: get_procedure_date(x).date())
 surgeonHeading = pd.DataFrame()
 surgeonHeading = surgeonHeading.append({'Surgeon':'test'}, ignore_index=True)
@@ -70,8 +73,9 @@ procedureHeading = procedureHeading.append({'Procedures performed in different r
 openTimeHeading = pd.DataFrame()
 openTimeHeading = openTimeHeading.append({'Open Times':''}, ignore_index=True)
 daily_block_data['blockDate'] = daily_block_data['blockDate'].apply(lambda x: get_procedure_date(x).date())
+daily_block_data.to_csv('dailyblockdata.csv')
 dailySummary = daily_block_data[(daily_block_data['blockDate'] >= date.today())]
-dailySummary = dailySummary[['flexId', 'room','blockDate','startTime','endTime','releaseDate','utilization']].drop_duplicates()
+dailySummary = dailySummary[['flexId', 'room','blockDate','start_time','end_time','releaseDate']].drop_duplicates()
 for surgeon, flexId in zip(surgeonList, flexIdList):
     currentExcelRow = 0
     currentWorksheet = surgeon
@@ -81,6 +85,7 @@ for surgeon, flexId in zip(surgeonList, flexIdList):
     curDailyData = dailySummary[dailySummary['flexId'] == flexId]
     blockDates = curDailyData['blockDate'].drop_duplicates().to_list()
     for blockDate in blockDates:
+        print('blockDate', blockDate)
         blockDailyData = curDailyData[curDailyData['blockDate'] == blockDate]
         writeDataToSheet(currentWorksheet,blockDailyData,currentExcelRow,writer)
         currentExcelRow = 2 + currentExcelRow + blockDailyData.shape[0]

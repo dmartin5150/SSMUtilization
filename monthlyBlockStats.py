@@ -19,14 +19,18 @@ def checkValidNPI(npi, row):
     return False
 
 def getBlockOwner(surgeon_group):
+
     block_owners = pd.read_csv('block_id_owners.csv')
     blocks_with_owners = block_owners.merge(surgeon_group, how='inner', left_on='npi', right_on='NPI')
+    block_schedule = pd.read_csv('block_release_schedule.csv')
+    blocks_with_owners = blocks_with_owners.merge(block_schedule, how='inner', left_on='id', right_on='flexId')
+    print(blocks_with_owners.columns)
     return blocks_with_owners
 
 
 def getNPIandBlocks(block_owners, group):
     all_npis = group['NPI']
-    all_blocks = block_owners.merge(all_npis, how='inner', left_on='npi', right_on='NPI')
+    all_blocks = block_owners.merge(all_npis, how='left', left_on='npi', right_on='NPI')
     return all_npis, all_blocks
 
 def getMonthlyData(unit, month):
@@ -76,8 +80,19 @@ def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
 def formatCurBlocks(curBlocks,all_blocks):
     curBlocks=curBlocks.merge(all_blocks,  left_on='npi', right_on='npi')
     curBlocks['month']=curBlocks['month'].apply(lambda x: int(x))
-    curBlocks.drop(['npis', 'NPI_x','NPI_y', 'id', 'blockType', 'Unnamed: 0'], axis=1, inplace=True)
+    curBlocks.rename(columns={'flexId_x':'flexId','unit_x':'unit','blockType_x':'blockType'},inplace=True)
+    curBlocks.drop(['npis', 'NPI_x','NPI_y', 'id', 'Unnamed: 0','id','blockType_y','name_x','unit_y','flexId_y','name_y'], axis=1, inplace=True)
+    print('curBlocks columns', curBlocks.columns)
     return curBlocks.sort_values(by=['unit', 'npi', 'month'])
+
+def getBlockSchedule(monthlyBlocks):
+    block_schedule = pd.read_csv('block_release_schedule.csv')
+    block_owners = pd.read_csv('block_id_owners.csv')
+    block_owners=block_owners[['npi','fullName','id']]
+    block_schedule = block_schedule.merge(block_owners, how='inner', left_on='flexId', right_on='id').drop_duplicates()
+    flexIds = monthlyBlocks['flexId'].drop_duplicates().to_list()
+    block_schedule['filter'] = block_schedule.apply(lambda row: (row['flexId']in flexIds), axis=1)
+    return block_schedule[block_schedule['filter'] == True]
 
 def getNudgeBlockData(units, months, surgeon_group):
     block_owners = getBlockOwner(surgeon_group)
@@ -87,13 +102,14 @@ def getNudgeBlockData(units, months, surgeon_group):
     for unit in units:
         for month in months:
             curdata = getMonthlyData(unit,month)
-
             for npi in all_npis:
                 npiData = updateNPIData(curdata,npi)
                 if npiData.empty:
                     continue
                 monthlyBlocks= getMonthlyBlockData(unit, month, npi, npiData,monthlyBlocks)
-                dailyBlocks = getDailyBlocks(unit, month, npi, npiData,dailyBlocks)
+    dailyBlocks = getBlockSchedule(monthlyBlocks)
+    print('making daily blcoks')
+    dailyBlocks.to_csv('db.csv')
     monthlyBlocks = formatCurBlocks(monthlyBlocks,all_blocks)
     return monthlyBlocks, dailyBlocks
 

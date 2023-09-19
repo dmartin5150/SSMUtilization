@@ -28,13 +28,14 @@ def getNudgeProcedureData(curRow,curDate, unit, nudgeProcedures):
 
 def getNudgeProcedures(units, nudgeBlocks):
     nudgeProcedures = pd.DataFrame()
-    blockDates = nudgeBlocks['blockDate'].to_list()
-    print('')
+    blockDates = nudgeBlocks['blockDate'].drop_duplicates().to_list()
+    print('blockDates', blockDates)
     for curDate in blockDates:
         curBlocks = nudgeBlocks[(nudgeBlocks['blockDate'] == curDate)]
+        print('cur block size', curBlocks.shape[0])
         for x in range(curBlocks.shape[0]):
             for unit in units: 
-                # print('in unit', unit, curDate)
+                print('in unit', unit, curDate)
                 curRow = curBlocks.iloc[x]
                 nudgeProcedures = getNudgeProcedureData(curRow,curDate, unit, nudgeProcedures)
     nudgeProcedures['procDate'] = nudgeProcedures['procDate'].apply(lambda x: get_procedure_date(x).date())
