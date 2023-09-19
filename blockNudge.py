@@ -39,12 +39,23 @@ all_npis = all_blocks['NPI']
 # print(all_blocks)
 
 
-def writeDataToSheet(sheetName,blockData,startRow,writer):
+def writeDataToSheet(sheetName,blockData,startRow,writer,indexValue):
     if (startRow == 0):
-        blockData.to_excel(writer, sheet_name=sheetName, index=False)
+        blockData.to_excel(writer, sheet_name=sheetName, index=indexValue)
     else:
-        blockData.to_excel(writer, sheet_name=sheetName, startrow= startRow , index=False)
+        blockData.to_excel(writer, sheet_name=sheetName, startrow= startRow , index=indexValue)
 
+def changeMonth(curMonth):
+    if (curMonth == 6):
+        return 'June'
+    elif(curMonth == 7):
+        return 'July'
+    elif(curMonth == 8):
+        return 'August'
+    elif(curMonth == 9):
+        return 'September'
+    elif(curMonth == 10):
+        return 'October'
 
 
 
@@ -53,14 +64,17 @@ writer = pd.ExcelWriter(fileName, engine='xlsxwriter')
 monthly_block_data,daily_block_data = getNudgeBlockData(units, months, toa)
 print('got montly data')
 surgeonList,flexIdList = getSurgeonList(monthly_block_data.copy())
-monthlySummary = monthly_block_data[['TOA Surgeon','utilization','month']].sort_values(by=['TOA Surgeon','month'])
+monthlySummary = monthly_block_data[['TOA Surgeon','utilization','month']].sort_values(by=['TOA Surgeon','month']).drop_duplicates()
+monthlySummary['monthName'] = monthly_block_data['month'].apply(lambda x: changeMonth(x))
 
-writeDataToSheet('Monthly',monthlySummary,0,writer)
+monthlySummary = monthlySummary.pivot(index='TOA Surgeon', columns='monthName', values='utilization')
+monthlySummary = monthlySummary[['July','August','September','October']]
+# newMonthlySummary = monthlySummary.copy()
+# print('new', newMonthlySummary[['July','August','September','October']])
+writeDataToSheet('Monthly',monthlySummary,0,writer, True)
 flexIds = monthly_block_data['flexId'].drop_duplicates().to_list()
 unused_times = get_monthly_unused_block(flexIds, months)
-print('unused time', unused_times.columns)
 procedures = getNudgeProcedures(units, daily_block_data)
-print('got nudge procedures')
 procedures['procDate'] = procedures['procDate'].apply(lambda x: get_procedure_date(x).date())
 surgeonHeading = pd.DataFrame()
 surgeonHeading = surgeonHeading.append({'Surgeon':'test'}, ignore_index=True)
@@ -80,29 +94,29 @@ for surgeon, flexId in zip(surgeonList, flexIdList):
     currentExcelRow = 0
     currentWorksheet = surgeon
     surgeonHeading.iloc[0]['Surgeon'] = surgeon
-    writeDataToSheet(currentWorksheet,surgeonHeading,currentExcelRow,writer)
+    writeDataToSheet(currentWorksheet,surgeonHeading,currentExcelRow,writer,False)
     currentExcelRow = currentExcelRow + 3
     curDailyData = dailySummary[dailySummary['flexId'] == flexId]
     blockDates = curDailyData['blockDate'].drop_duplicates().to_list()
     for blockDate in blockDates:
         print('blockDate', blockDate)
         blockDailyData = curDailyData[curDailyData['blockDate'] == blockDate]
-        writeDataToSheet(currentWorksheet,blockDailyData,currentExcelRow,writer)
+        writeDataToSheet(currentWorksheet,blockDailyData,currentExcelRow,writer,False)
         currentExcelRow = 2 + currentExcelRow + blockDailyData.shape[0]
         curBlockProcData = procedures[(procedures['flexId'] == flexId) & (procedures['procDate'] == blockDate)].drop_duplicates()
         if (curBlockProcData.empty):
             continue
-        writeDataToSheet(currentWorksheet,procedureHeading,currentExcelRow,writer)
+        writeDataToSheet(currentWorksheet,procedureHeading,currentExcelRow,writer,False)
         currentExcelRow = currentExcelRow + 2
-        writeDataToSheet(currentWorksheet,curBlockProcData,currentExcelRow,writer)
+        writeDataToSheet(currentWorksheet,curBlockProcData,currentExcelRow,writer,False)
         currentExcelRow = 2 + currentExcelRow + curBlockProcData.shape[0]
         curUnusedTimes = unused_times[(unused_times['flexId'] == flexId) & (unused_times['proc_date'] == blockDate)].drop_duplicates()
         if (curUnusedTimes.empty):
             continue
         print('cur unused times', curUnusedTimes)
-        writeDataToSheet(currentWorksheet,openTimeHeading,currentExcelRow,writer)
+        writeDataToSheet(currentWorksheet,openTimeHeading,currentExcelRow,writer,False)
         currentExcelRow = currentExcelRow + 2
-        writeDataToSheet(currentWorksheet,curUnusedTimes,currentExcelRow,writer)
+        writeDataToSheet(currentWorksheet,curUnusedTimes,currentExcelRow,writer,False)
         currentExcelRow = 2 + currentExcelRow + curUnusedTimes.shape[0]
 writer.save()
 
