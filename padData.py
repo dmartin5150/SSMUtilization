@@ -57,9 +57,9 @@ def pad_block_data(stats,procedure_date,unit):
         # print('weekday',weekday)
         # print('idx',idx)
         # print('converted', datetime.strptime(weekday, "%Y-%m-%d").date())
-        stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1','2023-1-1','0','2023-1-1']
-        stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1','2023-1-1','0','2023-1-1']
-        stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1','2023-1-1','0','2023-1-1']
+        stats.loc[len(stats.index)]=[idx+.25,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'ALL','None','2023-1-1 00:00:00-00:00','2023-1-1 00:00:00-00:00','0','2023-1-1']
+        stats.loc[len(stats.index)]=[idx+.5,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'IN','None','2023-1-1 00:00:00-00:00','2023-1-1 00:00:00-00:00','0','2023-1-1']
+        stats.loc[len(stats.index)]=[idx+.75,datetime.strptime(weekday, "%Y-%m-%d").date(),unit,'none','No Block',0, 0, 0, 'OUT','None','2023-1-1 00:00:00-00:00','2023-1-1 00:00:00-00:00','0','2023-1-1']
     # print ('post', stats.sort_values(by=['blockDate']))
     return stats.sort_values(by=['blockDate'])
 

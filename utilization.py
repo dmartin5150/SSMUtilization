@@ -29,7 +29,7 @@ from blockStats import get_block_report_hours,add_block_date,get_cum_block_stats
 from blockProcedureList import get_filtered_proc_list
 from openTimes import create_future_open_times,get_future_open_times_from_file,get_open_times
 from findroom import create_procedure_stats, get_room_stats_from_file,create_roomstats_summary,get_room_no_surgeon,get_room_stats
-
+from surgeonStats import createSurgeonProcedureStats
 
 app = Flask(__name__)
 CORS(app)
@@ -66,7 +66,7 @@ future_open_times = pd.DataFrame()
 block_id_owners = pd.DataFrame()
 
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')

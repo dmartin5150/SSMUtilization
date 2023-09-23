@@ -1,5 +1,5 @@
 import pandas as pd 
-from utilities import get_time,get_procedure_date
+from utilities import get_time,get_procedure_date,get_block_date_with_timezone
 from blockOwner import get_owner_npis, check_selected_npis
 from blockRoomStats import get_all_block_stats, get_in_room_block_stats,get_out_room_block_stats
 from padData import pad_block_data
@@ -192,8 +192,8 @@ def get_block_id_owner_from_file():
 def update_block_dates_from_file(df):
     df['blockDate'] = df['blockDate'].apply(lambda x: get_procedure_date(x))
     df['blockDate'] = df['blockDate'].apply(lambda x: x.date())
-    df['blockStartTime'] = df['blockStartTime'].apply(lambda x: get_procedure_date(x))
-    df['blockEndTime'] = df['blockEndTime'].apply(lambda x: get_procedure_date(x))
+    df['blockStartTime'] = df['blockStartTime'].apply(lambda x: get_block_date_with_timezone(x))
+    df['blockEndTime'] = df['blockEndTime'].apply(lambda x: get_block_date_with_timezone(x))
     # print(df.dtypes)
     return df
 

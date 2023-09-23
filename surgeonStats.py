@@ -1,7 +1,7 @@
 from utilities import formatMinutes,get_date_range
 from facilityconstants import orLookUp
 import calendar;
-
+from providers import get_providers
 
 def getProcedures(unit,start_date,dataFrameLookup):
     data = dataFrameLookup[unit]
@@ -51,3 +51,11 @@ def get_surgeon_stats(unit,name, npi,dataFrameLookup):
     return {'surgeon':{'id':npi,'value':npi, 'label':name},
             'mainCard':august_card,
             'secondaryCards':secondary_cards}
+
+
+def createSurgeonProcedureStats(facilityUnits, dataFrameLookup):
+    for unit in facilityUnits:
+        curProcs = dataFrameLookup[unit]
+        curSurgeons = get_providers(unit,dataFrameLookup)
+        print(curSurgeons.columns)
+    return dataFrameLookup
