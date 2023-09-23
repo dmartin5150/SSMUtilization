@@ -47,6 +47,8 @@ def create_date_with_time(dt, tm):
 def get_text_of_time(dt):
     curHour = dt.hour
     curMinute = dt.minute
+    if (curMinute < 10):
+        curMinute = '0' + str(curMinute)
     merideim = 'AM'
     if (curHour == 12):
         merideim = 'PM'

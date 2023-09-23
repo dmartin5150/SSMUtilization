@@ -62,7 +62,7 @@ def getMonthlyBlockData(unit,month,npi,npiData,curBlocks):
 
 def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
     curDates = npiData['blockDate'].to_list()
-    print('npi data columns', npiData.columns)
+    # print('npi data columns', npiData.columns)
     for curDate in curDates:
          curdata = npiData[npiData['blockDate'] == curDate].copy()
          releaseDate = curdata.iloc[0]['releaseDate']
@@ -82,7 +82,7 @@ def formatCurBlocks(curBlocks,all_blocks):
     curBlocks['month']=curBlocks['month'].apply(lambda x: int(x))
     curBlocks.rename(columns={'flexId_x':'flexId','unit_x':'unit','blockType_x':'blockType'},inplace=True)
     curBlocks.drop(['npis', 'NPI_x','NPI_y', 'id', 'Unnamed: 0','id','blockType_y','name_x','unit_y','flexId_y','name_y'], axis=1, inplace=True)
-    print('curBlocks columns', curBlocks.columns)
+    # print('curBlocks columns', curBlocks.columns)
     return curBlocks.sort_values(by=['unit', 'npi', 'month'])
 
 def getBlockSchedule(monthlyBlocks):
@@ -108,7 +108,7 @@ def getNudgeBlockData(units, months, surgeon_group):
                     continue
                 monthlyBlocks= getMonthlyBlockData(unit, month, npi, npiData,monthlyBlocks)
     dailyBlocks = getBlockSchedule(monthlyBlocks)
-    print('making daily blcoks')
+    # print('making daily blcoks')
     dailyBlocks.to_csv('db.csv')
     monthlyBlocks = formatCurBlocks(monthlyBlocks,all_blocks)
     return monthlyBlocks, dailyBlocks
@@ -122,7 +122,7 @@ def getSummaryMonthlyBlocks(monthlyBlocks):
         months = {}
         for x in range(1,curblocks.shape[0]):
             curMonth = curblocks.iloc[x]['month']
-            print('curmonth', type(curMonth), curMonth,(curMonth == '7'))
+            # print('curmonth', type(curMonth), curMonth,(curMonth == '7'))
             if (curMonth == '7'):
                 months['July'] = curblocks.iloc[x]['utilization']
             if(curMonth == '8'):
