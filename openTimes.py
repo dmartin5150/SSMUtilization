@@ -10,10 +10,6 @@ from softblocks import update_block_times_from_softblocks, update_open_times_fro
 open_time_cols = ['openTimeName', 'proc_date','local_start_time','local_end_time','unit', 'room','unused_block_minutes','formatted_minutes','open_type','release_date', 'open_start_time','block_id']
 
 def get_cur_procs(cur_date, room, procs):
-    test_date = date(2023, 9, 27)
-    if ((cur_date == test_date) & (room == 'BH CSC 09')):
-        test_proc = procs[(procs['procedureDtNoTime'] == test_date) & (procs['room'] == 'BH CSC 09')]
-        test_proc.to_csv('test_proc.csv')
     return procs[(procs['procedureDtNoTime'] ==cur_date) & (procs['room'] == room)].sort_values(by='ptStart')
 
 
@@ -139,9 +135,6 @@ def get_future_open_times(start_date, end_date, procedures,unit, room, block_sch
         curProcs = get_cur_procs(start_date,room,procedures)
 
         curProcs = create_pseudo_schedule(curProcs)
-        test_date = date(2023, 9, 27)
-        if ((start_date == test_date) & (room == 'BH CSC 09')):
-            curProcs.to_csv('pseudo_proc.csv')
         blocks = get_blocks(start_date,room,block_schedule.copy())
         if (blocks.shape[0] != 0):
             blocks = blocks.apply(lambda row: update_block_dates(start_date, row), axis=1)
