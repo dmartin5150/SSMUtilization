@@ -58,7 +58,10 @@ def getBlockData( npiData):
 
 def getMonthlyBlockData(unit,month,npi,npiData,curBlocks):
     baseData = getBlockData(npiData)
-    return curBlocks.append({'flexId':baseData.flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization}, ignore_index=True)
+    row_to_append = pd.DataFrame([{'flexId':baseData.flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization}])
+    curBlocks = pd.concat([curBlocks, row_to_append])
+    return curBlocks
+    # return curBlocks.append({'flexId':baseData.flexId ,'unit':unit,'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization}, ignore_index=True)
 
 def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
     curDates = npiData['blockDate'].to_list()
@@ -73,7 +76,9 @@ def getDailyBlocks(unit, month, npi, npiData,dailyBlocks):
          endTimeDate = curdata.iloc[0]['blockEndTime'].split(' ')
          endTime= endTimeDate[1]
          baseData = getBlockData(curdata)
-         dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'room':room, 'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate,'startTime': startTime, 'endTime': endTime, 'releaseDate':releaseDate}, ignore_index=True)
+         row_to_append = pd.DataFrame([{'flexId':baseData.flexId ,'unit':unit,'room':room, 'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate,'startTime': startTime, 'endTime': endTime, 'releaseDate':releaseDate}])
+         dailyBlocks = pd.concat(dailyBlocks, row_to_append)
+        #  dailyBlocks = dailyBlocks.append({'flexId':baseData.flexId ,'unit':unit,'room':room, 'month':month, 'npi': npi,'bt_minutes':baseData.bt_minutes,'nbt_minutes':baseData.nbt_minutes, 'total_minute':baseData.total_minutes, 'utilization':baseData.utilization,'blockDate':curDate,'startTime': startTime, 'endTime': endTime, 'releaseDate':releaseDate}, ignore_index=True)
     return dailyBlocks
 
 
@@ -132,7 +137,9 @@ def getSummaryMonthlyBlocks(monthlyBlocks):
             if(curMonth == '10'):
                 months['October'] = curblocks.iloc[x]['utilization']
         print('months', months)
-    summaryBlock = summaryBlock.append({'Surgeon':curblocks['fullName'], 'unit':curblocks['unit']}, ignore_index=True)
+    row_to_append = pd.DataFrame([{'Surgeon':curblocks['fullName'], 'unit':curblocks['unit']}])
+    summaryBlock = pd.concat([summaryBlock,row_to_append])
+    # summaryBlock = summaryBlock.append({'Surgeon':curblocks['fullName'], 'unit':curblocks['unit']}, ignore_index=True)
     return summaryBlock
                     
 

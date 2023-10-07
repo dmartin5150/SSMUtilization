@@ -22,7 +22,9 @@ def create_procedure_stats(procedures,rooms,filename):
             num_rooms = curProcedure[curProcedure['room'] == room].shape[0]
             # print('num_rooms', num_rooms, 'count', proc_count)
             usage = round((num_rooms/proc_count)*100,0)
-            room_stats = room_stats.append({'unit': unit,'room':room,'procedureName':procedure, 'usage': usage,'duration_mean':duration_mean, 'duration_std':duration_std}, ignore_index=True)
+            row_to_append = pd.DataFrame([{'unit': unit,'room':room,'procedureName':procedure, 'usage': usage,'duration_mean':duration_mean, 'duration_std':duration_std}])
+            # room_stats = room_stats.append({'unit': unit,'room':room,'procedureName':procedure, 'usage': usage,'duration_mean':duration_mean, 'duration_std':duration_std}, ignore_index=True)
+            room_stats = pd.concat([room_stats, row_to_append])
     room_stats.fillna(0,inplace=True)
     room_stats.to_csv(filename)
     return room_stats

@@ -47,7 +47,7 @@ if file_exists('blocktimestamp.txt'):
 
 block_templates = pd.DataFrame()
 
-startDate = get_procedure_date('2023-4-1').date()
+startDate = get_procedure_date('2023-5-1').date()
 endDate = get_procedure_date('2023-11-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
@@ -66,7 +66,7 @@ future_open_times = pd.DataFrame()
 block_id_owners = pd.DataFrame()
 
 
-if (timestamp == saved_timestamp):
+if (timestamp != saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -132,6 +132,8 @@ else:
     roomStatsLookUp = {'BH JRI': jriRoomStats, 'STM ST OR': STMSTORRoomStats, 'MT OR': MTORRoomStats, 'BH CSC':CSCRoomStats, 'ST OR':STORRoomStats}
     num_npis = get_num_npis(block_owner)
     print('getting block stats')
+    
+    print('block no release ', block_no_release)
     cum_block_stats, cum_block_procs,block_id_owners = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
     print('getting open times')
     future_start_date = get_procedure_date('2023-8-1').date()

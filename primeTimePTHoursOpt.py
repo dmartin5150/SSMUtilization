@@ -172,8 +172,11 @@ def get_pt_totals(data,basePTMinutes,startDate,endDate,roomOption,prime_time):
             display = '0%'
         else:
             display = str(int(round(ptMinutes/total_pt_minutes*100,0))) +'%'
-        pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
-                          'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
+        row_to_append = pd.DataFrame([{'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
+                          'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display}])
+        pt_totals = pd.concat([pt_totals,row_to_append])
+        # pt_totals = pt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
+        #                   'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display},ignore_index=True)
 
     unit_pt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
                               'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }

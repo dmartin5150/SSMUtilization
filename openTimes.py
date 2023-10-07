@@ -54,7 +54,9 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
         formatted_start = formatProcedureTimes(ref_start)
         formatted_end = formatProcedureTimes(ref_end)
         formatted_time = formatMinutes(time_difference)
-        unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': ref_start, 'block_id':block_id},ignore_index=True) 
+        row_to_add = pd.DataFrame([{'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': ref_start, 'block_id':block_id}])
+        unused_time = pd.concat([unused_time, row_to_add])
+        # unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': ref_start, 'block_id':block_id},ignore_index=True) 
         return unused_time
 
 
@@ -78,7 +80,9 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
                         formatted_end = formatProcedureTimes(ref_end)
                     else:
                         formatted_end = formatProcedureTimes(start_time)
-                    unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit, 'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time':ref_start, 'block_id':block_id},ignore_index=True) 
+                    row_to_add = pd.DataFrame([{'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit, 'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time':ref_start, 'block_id':block_id}])
+                    unused_time= pd.concat([unused_time,row_to_add])
+                    # unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit, 'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time':ref_start, 'block_id':block_id},ignore_index=True) 
                     
         else:
             if (start_time > ref_start):
@@ -86,7 +90,10 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
                 formatted_time = formatMinutes(time_difference)
                 formatted_start = formatProcedureTimes(filtered_procedures['local_end_time'][ind - 1])
                 formatted_end = formatProcedureTimes(start_time)
-                unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': filtered_procedures['local_end_time'][ind - 1], 'block_id': block_id},ignore_index=True) 
+                row_to_add = pd.DataFrame([{'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': filtered_procedures['local_end_time'][ind - 1], 'block_id': block_id}])
+                unused_time = pd.concat([unused_time, row_to_add])
+                # unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': filtered_procedures['local_end_time'][ind - 1], 'block_id': block_id},ignore_index=True)
+
 
 
         if ind == len(filtered_procedures.index)-1:
@@ -95,14 +102,18 @@ def get_unused_times(unused_time, curDate, procedures,curBlock,unit, room,open_t
                 formatted_time = formatMinutes(time_difference)
                 formatted_start = formatProcedureTimes(end_time)
                 formatted_end = formatProcedureTimes(ref_end)
-                unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': end_time, 'block_id':block_id},ignore_index=True) 
+                row_to_add = pd.DataFrame([{'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': end_time, 'block_id':block_id}])
+                unused_time = pd.concat([unused_time, row_to_add])
+                # unused_time = unused_time.append({'openTimeName':name,'proc_date':str(curDate),'local_start_time':str(formatted_start),'local_end_time':str(formatted_end),'unit':unit,'room':room,'unused_block_minutes':time_difference,'formatted_minutes':formatted_time,'open_type':open_type,'release_date':release_date, 'open_start_time': end_time, 'block_id':block_id},ignore_index=True) 
 
     return unused_time
 
 
 
 def combine_blocks_and_procs(curProcs, blocks,start_date,room):
-    return curProcs.append({'local_start_time': blocks['start_time'], 'local_end_time':blocks['end_time']}, ignore_index=True)
+    row_to_add = pd.DataFrame([{'local_start_time': blocks['start_time'], 'local_end_time':blocks['end_time']}])
+    return pd.concat([curProcs, row_to_add])
+    # return curProcs.append({'local_start_time': blocks['start_time'], 'local_end_time':blocks['end_time']}, ignore_index=True)
 
 
 
@@ -120,7 +131,9 @@ def update_block_dates(block_date, curRow):
 def add_all_blocks(blocks, curProcs):
     for row in range(blocks.shape[0]): 
         curRow = blocks.iloc[row]
-        curProcs = curProcs.append({'local_start_time':curRow['start_time'], 'local_end_time':curRow['end_time']}, ignore_index=True)
+        row_to_add = pd.DataFrame([{'local_start_time':curRow['start_time'], 'local_end_time':curRow['end_time']}])
+        curProcs = pd.concat([curProcs,row_to_add])
+        # curProcs = curProcs.append({'local_start_time':curRow['start_time'], 'local_end_time':curRow['end_time']}, ignore_index=True)
     return curProcs
 
 

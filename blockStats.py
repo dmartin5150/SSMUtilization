@@ -16,7 +16,9 @@ def get_blocks_from_unit(block_schedule, unit):
     return block_schedule[block_schedule['unit'] == unit]
 
 
-
+def createtime(row):
+    print(time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second))
+    return time(row['start_time'].hour, row['start_time'].minute,row['start_time'].second)
 
 
 
@@ -80,7 +82,9 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
     
 
     # print('getting data')
+    print('block schedule', block_schedule)
     block_data = get_blocks_from_unit(block_schedule,unit)
+    print('block data update', block_data)
     block_data = update_block_times(block_data.copy())
     block_dates = get_block_dates(block_data)
     block_rooms = get_block_rooms(block_data)
@@ -91,7 +95,7 @@ def get_block_stats(block_schedule, block_owner, procedure_data,unit,num_npis,st
         for room in block_rooms:
             daily_block_data = block_data[(block_data['blockDate'] == block_date) &
                                     (block_data['room'] == room)]
-            print('daily block data', daily_block_data.columns)
+            # print('daily block data', daily_block_data.columns)
             for x in range(daily_block_data.shape[0]):
                 curRow = daily_block_data.iloc[x]
                 npis = get_owner_npis (block_owner, curRow['flexId'],num_npis)
@@ -157,16 +161,18 @@ def get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup
     cum_block_stats = {}
     cum_block_procs = {}
     block_id_owners = pd.DataFrame(columns=block_id_owner_cols)
+    print('block no release ', block_no_release)
     for unit in units:
         curStartDate = startDate
         print('unit', unit)
         curEndDate = getEndDate(startDate)
         for x in range (startDate.month, endDate.month):
-            print('dataframe', dataFrameLookup[unit])
+            # print('dataframe', dataFrameLookup[unit])
             procedures = getPTProcedures(curStartDate,dataFrameLookup[unit])
             # print('unit',unit,  procedures.shape)
             cur_block_schedule = get_block_schedule_from_date(curStartDate, curEndDate, block_no_release,unit)
-            # print('blockschedule', cur_block_schedule.shape)
+            print('blockschedule', cur_block_schedule.shape, curStartDate, curEndDate)
+            print('block no release', block_no_release[block_no_release['unit'] == 'BH CSC'])
             block_stats,newProcList = get_block_stats(cur_block_schedule,block_owner,procedures, unit,num_npis,curStartDate,True,[])
             cum_block_stats.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":block_stats})
             cum_block_procs.update({f"{curStartDate.month}_{curStartDate.year}_{unit}":newProcList})
@@ -290,8 +296,11 @@ def get_block_summary(block_data,bt_totals, room_type,block_type):
             display = 'None'
         else:
             display = str(int(round(ptMinutes/total_minutes*100,0))) +'%'
-        bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
-                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'className':block_type},ignore_index=True)
+        row_to_append = pd.DataFrame([{'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
+                            'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'className':block_type}])
+        bt_totals = pd.concat(bt_totals,row_to_append)
+        # bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
+        #                     'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'className':block_type},ignore_index=True)
         
     # unit_bt_totals= [{'date': 'Summary', 'dayOfWeek': row.dayOfWeek,'ptMinutes': str(row.ptMinutes), 
     #                           'notPTMinutes': row.nonPTMinutes, 'subHeading1': row.subHeading1,'subHeading2':row.subHeading2, 'display': row.display }

@@ -38,6 +38,7 @@ def get_manual_release():
     return manual_release
 
 def getReleaseDate(curday, td):
+    print('curday', curday, 'td',td)
     day = curday - timedelta(days=td)
     return day
 
@@ -70,18 +71,19 @@ def remove_overlapping_blocks(blocks):
             if (cur_block['end_time'] > updated_block['end_time']):
                 updated_block['end_time'] = cur_block['end_time']
         # print('appending block', updated_block)
-        updated_blocks= updated_blocks.append(updated_block)
+        updated_blocks= pd.concat([updated_blocks,updated_block])
         # print('post', updated_blocks)
     not_overlapped = blocks[~blocks.duplicated(['blockName'],keep=False)]
     # print('not_overlapped', not_overlapped)
     if not not_overlapped.empty:
-        updated_blocks = pd.concat([updated_blocks, not_overlapped])
+        updated_blocks = pd.concat([updated_blocks, not_overlapped],axis=1)
     # print('updated_blocks', updated_blocks)
     return updated_blocks
 
     
         
-        
+
+
             
             
             
@@ -113,7 +115,14 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 if (curData.shape[0] > 1):
                     # print(d, curDOW, curWOM,room)
                     # print(curData[curData.duplicated(['blockName'],keep=False)])
-                    curData = remove_overlapping_blocks(curData)
+                    # curData = remove_overlapping_blocks(curData)   
+                    # NEED  
+                    if (block_schedule.shape[0] == 0):
+                        block_schedule = curData
+                    else:
+                        block_schedule = block_schedule.reset_index(drop=True)
+                        block_schedule = pd.concat([block_schedule,curData])
+                        block_schedule.to_csv('curblockschedule.csv')
                 
                 # closed = curData[curData['flexId'] == -1]
                 # if not closed.empty:
@@ -121,9 +130,14 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 # kurtz = curData[curData['blockName'].str.contains('Kurtz')]
                 # if not kurtz.empty:
-                    # print(d, curDOW, curWOM,room)
-                    # print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
-                block_schedule = block_schedule.append(curData)
+                #     print(d, curDOW, curWOM,room)
+                #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
+                #     curData.to_csv('curBlockScheduleData', curData)
+                #     block_schedule.to_csv('curblockschedule.csv')
+                # block_schedule = block_schedule.append(curData)
+                # block_schedule = block_schedule.reset_index()
+
+     
         if ((d.isoweekday() == 6) & (first_day_of_month)):
             curWOM = 1 
         elif (d.isoweekday() == 6):
@@ -131,6 +145,8 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
         first_day_of_month = False
 
     block_no_release = block_schedule
+    block_schedule.to_csv('curblockschedule.csv')
+
     block_schedule['releaseDays'] = block_schedule['releaseDays'].apply(lambda x: x/1440)
     block_schedule['releaseDate'] = block_schedule.apply(lambda row: getReleaseDate(row['blockDate'],row['releaseDays']),axis=1)
     block_schedule['releaseDate'] = pd.to_datetime(block_schedule['releaseDate'], format='%Y-%m-%d')

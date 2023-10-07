@@ -26,7 +26,9 @@ def getNudgeProcedureData(curRow,curDate, unit, nudgeProcedures):
     if not curProcedures.empty:
         for x in range(curProcedures.shape[0]):
             curProc = curProcedures.iloc[x]
-            nudgeProcedures = nudgeProcedures.append({'flexId':curRow['flexId'],'unit':unit,'procDate':curDate,'block room': curRoom, 'proc room': curProc['room'],'startTime':str(curProc['startTime']),'endTime':str(curProc['endTime']), 'fullName':curProc['fullName']}, ignore_index=True)
+            row_to_add = pd.DataFrame([{'flexId':curRow['flexId'],'unit':unit,'procDate':curDate,'block room': curRoom, 'proc room': curProc['room'],'startTime':str(curProc['startTime']),'endTime':str(curProc['endTime']), 'fullName':curProc['fullName']}])
+            nudgeProcedures = pd.concat([nudgeProcedures,row_to_add])
+            # nudgeProcedures = nudgeProcedures.append({'flexId':curRow['flexId'],'unit':unit,'procDate':curDate,'block room': curRoom, 'proc room': curProc['room'],'startTime':str(curProc['startTime']),'endTime':str(curProc['endTime']), 'fullName':curProc['fullName']}, ignore_index=True)
     return nudgeProcedures
 
 
