@@ -66,7 +66,7 @@ future_open_times = pd.DataFrame()
 block_id_owners = pd.DataFrame()
 
 
-if (timestamp != saved_timestamp):
+if (timestamp == saved_timestamp):
     block_templates = get_block_templates_from_file("blockTemplates.csv")
     grid_block_schedule = get_grid_block_schedule_from_file('grid_block_schedule.csv')
     block_no_release =  get_schedule_from_file('block_no_release.csv')
@@ -232,12 +232,12 @@ def get_block_data_async():
     # num_npis = get_num_npis(block_owner)
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
     block_stats = cum_block_stats[block_data_string]
-    print('blocks stats in blocks', block_stats)
+    print('blocks stats in blocks',block_stats)
     endDate = getEndDate(startDate)
     newProcList = cum_block_procs[block_data_string]
     test_date = get_procedure_date('2023-8-1').date()
-    print('test date blocks', block_stats[block_stats['blockDate'] == test_date]['npis'].drop_duplicates())
-    print('block start, block end', startDate, endDate)
+    # print('test date blocks', block_stats[block_stats['blockDate'] == test_date]['npis'].drop_duplicates())
+    # print('block start, block end', startDate, endDate)
     if not(selectAll):
         print('In not select all')
         block_stats, flexIds =  get_filtered_block_stats(selectedProviders,block_stats.copy(),startDate,unit)

@@ -72,7 +72,8 @@ def get_block_report_hours(data):
     block_report_hours = [{'id':str(row.id), 'blockDate':row.blockDate.strftime("%Y-%m-%d"),'unit':row.unit,
                                     'room':row.room, 'utilization':row.utilization,'bt_minutes':str(row.bt_minutes),
                                     'nbt_minutes':str(row.nbt_minutes),'total_minutes':str(row.total_minutes),
-                                    'type':row.type,'blockType':row.blockType} for index, row in data.iterrows()] 
+                                    'type':row.type,'blockType':str(row.blockType)} for index, row in data.iterrows()] 
+    print('block report hours', block_report_hours)
     return block_report_hours
 
 
@@ -298,7 +299,7 @@ def get_block_summary(block_data,bt_totals, room_type,block_type):
             display = str(int(round(ptMinutes/total_minutes*100,0))) +'%'
         row_to_append = pd.DataFrame([{'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
                             'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'className':block_type}])
-        bt_totals = pd.concat(bt_totals,row_to_append)
+        bt_totals = pd.concat([bt_totals,row_to_append])
         # bt_totals = bt_totals.append({'date':title,'dayOfWeek':dayOfWeek,'ptMinutes': ptMinutes,'nonPTMinutes':nonptMinutes,
         #                     'subHeading1':subHeading1,'subHeading2':subHeading2,'display':display,'type':room_type,'className':block_type},ignore_index=True)
         
