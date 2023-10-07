@@ -71,12 +71,13 @@ def remove_overlapping_blocks(blocks):
             if (cur_block['end_time'] > updated_block['end_time']):
                 updated_block['end_time'] = cur_block['end_time']
         # print('appending block', updated_block)
-        updated_blocks= pd.concat([updated_blocks,updated_block])
+        row_to_append = pd.DataFrame([cur_block])
+        updated_blocks= pd.concat([updated_blocks,row_to_append])
         # print('post', updated_blocks)
     not_overlapped = blocks[~blocks.duplicated(['blockName'],keep=False)]
     # print('not_overlapped', not_overlapped)
     if not not_overlapped.empty:
-        updated_blocks = pd.concat([updated_blocks, not_overlapped],axis=1)
+        updated_blocks = pd.concat([updated_blocks, not_overlapped])
     # print('updated_blocks', updated_blocks)
     return updated_blocks
 
@@ -115,8 +116,7 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 if (curData.shape[0] > 1):
                     # print(d, curDOW, curWOM,room)
                     # print(curData[curData.duplicated(['blockName'],keep=False)])
-                    # curData = remove_overlapping_blocks(curData)   
-                    # NEED  
+                    curData = remove_overlapping_blocks(curData)    
                     if (block_schedule.shape[0] == 0):
                         block_schedule = curData
                     else:
