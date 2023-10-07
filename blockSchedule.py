@@ -93,6 +93,7 @@ def remove_overlapping_blocks(blocks):
 def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLists, releaseData,block_change_dates):
     block_schedule = pd.DataFrame(columns=block_search_cols)
     curWOM = 1
+    start_day = 0
     c = Calendar()
     first_day_of_month = True
     # print('closed blocks', block_templates[block_templates['flexId'] == -1])
@@ -117,12 +118,12 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                     # print(d, curDOW, curWOM,room)
                     # print(curData[curData.duplicated(['blockName'],keep=False)])
                     curData = remove_overlapping_blocks(curData)    
-                    if (block_schedule.shape[0] == 0):
-                        block_schedule = curData
-                    else:
-                        block_schedule = block_schedule.reset_index(drop=True)
-                        block_schedule = pd.concat([block_schedule,curData])
-                        block_schedule.to_csv('curblockschedule.csv')
+                if (block_schedule.shape[0] == 0):
+                    block_schedule = curData
+                else:
+                    block_schedule = block_schedule.reset_index(drop=True)
+                    block_schedule = pd.concat([block_schedule,curData])
+                    block_schedule.to_csv('curblockschedule.csv')
                 
                 # closed = curData[curData['flexId'] == -1]
                 # if not closed.empty:
@@ -138,11 +139,21 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 # block_schedule = block_schedule.reset_index()
 
      
-        if ((d.isoweekday() == 6) & (first_day_of_month)):
-            curWOM = 1 
-        elif (d.isoweekday() == 6):
-            curWOM +=1
-        first_day_of_month = False
+        if (first_day_of_month):
+            curWOM = 1
+            if((d.isoweekday() == 6) | (d.isoweekday() == 7)):
+                start_day = 1
+            else:
+                start_day = d.isoweekday()
+            first_day_of_month = False
+        else:
+            if(d.isoweekday() == start_day):
+                curWOM += 1
+        # if ((d.isoweekday() == 6) & (first_day_of_month)):
+        #     curWOM = 1 
+        # elif (d.isoweekday() == 6):
+        #     curWOM +=1
+        
 
     block_no_release = block_schedule
     block_schedule.to_csv('curblockschedule.csv')

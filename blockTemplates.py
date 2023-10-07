@@ -77,6 +77,7 @@ def generate_block_templates(block_data, frequencies):
                 break
             block_schedule = update_block_schedule(index, freq, cur_row, block_schedule)
             index += 1
+    block_schedule.to_csv('curTemplates.csv')
     convert_block_datetime_strings_to_dates(block_schedule)
     cast_block_datetimes_to_cst(block_schedule)
     convert_start_end_datetime_to_date_only(block_schedule)
