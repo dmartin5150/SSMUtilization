@@ -54,7 +54,7 @@ def get_filtered_block_stats(surgeon_list, block_stats,start_date, unit):
     block_stats = pad_block_data(block_stats,start_date,unit)
     flexIdData = block_stats[block_stats['room'] != 'none']
     flexIds = flexIdData['id'].drop_duplicates()
-    # print('flexIds', flexIds)
+    print('flexIds', flexIds)
     # flexIds = [b for b in flexIds if not isinstance(b, float)]
     return block_stats, flexIds
 

@@ -38,7 +38,7 @@ def get_manual_release():
     return manual_release
 
 def getReleaseDate(curday, td):
-    print('curday', curday, 'td',td)
+    # print('curday', curday, 'td',td)
     day = curday - timedelta(days=td)
     return day
 
@@ -97,7 +97,12 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
     c = Calendar()
     first_day_of_month = True
     # print('closed blocks', block_templates[block_templates['flexId'] == -1])
+    testDate = get_procedure_date('2023-10-31').date()
     for d in [x for x in c.itermonthdates(2023, curMonth) if x.month == curMonth]:
+        print('day ', d)
+        if (d == testDate):
+            print('Day is 10/31')
+            print('WOM', curWOM, "dow",d.isoweekday())
         if first_day_of_month:
             curTemplates = update_block_templates_from_date(block_templates, d)
         if d in block_change_dates:
@@ -123,7 +128,6 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 else:
                     block_schedule = block_schedule.reset_index(drop=True)
                     block_schedule = pd.concat([block_schedule,curData])
-                    block_schedule.to_csv('curblockschedule.csv')
                 
                 # closed = curData[curData['flexId'] == -1]
                 # if not closed.empty:
@@ -138,17 +142,18 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 # block_schedule = block_schedule.append(curData)
                 # block_schedule = block_schedule.reset_index()
 
-     
+        block_schedule.to_csv('curblockschedule.csv')
         if (first_day_of_month):
             curWOM = 1
             if((d.isoweekday() == 6) | (d.isoweekday() == 7)):
                 start_day = 1
             else:
+                first_day_of_month = False
                 start_day = d.isoweekday()
-            first_day_of_month = False
         else:
             if(d.isoweekday() == start_day):
                 curWOM += 1
+        print('day ', d, 'WOM ', curWOM)
         # if ((d.isoweekday() == 6) & (first_day_of_month)):
         #     curWOM = 1 
         # elif (d.isoweekday() == 6):

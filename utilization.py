@@ -48,7 +48,7 @@ if file_exists('blocktimestamp.txt'):
 block_templates = pd.DataFrame()
 
 startDate = get_procedure_date('2023-5-1').date()
-endDate = get_procedure_date('2023-11-1').date()
+endDate = get_procedure_date('2023-12-1').date()
 grid_block_schedule = pd.DataFrame()
 block_no_release = pd.DataFrame()
 block_schedule = pd.DataFrame()
@@ -232,7 +232,7 @@ def get_block_data_async():
     # num_npis = get_num_npis(block_owner)
     block_data_string = f"{startDate.month}_{startDate.year}_{unit}"
     block_stats = cum_block_stats[block_data_string]
-    print('blocks stats in blocks',block_stats)
+    # print('blocks stats in blocks',block_stats)
     endDate = getEndDate(startDate)
     newProcList = cum_block_procs[block_data_string]
     test_date = get_procedure_date('2023-8-1').date()
