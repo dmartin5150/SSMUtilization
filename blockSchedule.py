@@ -98,8 +98,24 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
     first_day_of_month = True
     # print('closed blocks', block_templates[block_templates['flexId'] == -1])
     testDate = get_procedure_date('2023-10-31').date()
+    # print('in Create monthly block scheduled')
+    # print("I********")
+    # print(curMonth)
+    # print(curTemplates[curTemplates['flexId'] == 112103])
     for d in [x for x in c.itermonthdates(2023, curMonth) if x.month == curMonth]:
-        print('day ', d)
+        if (first_day_of_month):
+            curWOM = 1
+            if((d.isoweekday() == 6) | (d.isoweekday() == 7)):
+                start_day = 1
+            else:
+                first_day_of_month = False
+                start_day = d.isoweekday()
+        else:
+            if(d.isoweekday() == start_day):
+                curWOM += 1
+        # print('day ', d, 'WOM h', curWOM)
+        # print(curTemplates[curTemplates['flexId'] == 112103])
+        # print('day ', d)
         if (d == testDate):
             print('Day is 10/31')
             print('WOM', curWOM, "dow",d.isoweekday())
@@ -129,12 +145,13 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                     block_schedule = block_schedule.reset_index(drop=True)
                     block_schedule = pd.concat([block_schedule,curData])
                 
-                # closed = curData[curData['flexId'] == -1]
+                # grayson = curData[curData['flexId'] == 112103]
                 # if not closed.empty:
                 #     print(d, curDOW, curWOM,room)
                 #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
-                # kurtz = curData[curData['blockName'].str.contains('Kurtz')]
-                # if not kurtz.empty:
+                # grayson = curData[curData['blockName'].str.contains('Grayson')]
+                # if not grayson.empty:
+                #     print('FOUND Grayson')
                 #     print(d, curDOW, curWOM,room)
                 #     print(curData[['blockName','start_date','end_date','start_time','end_time','dow','wom1','wom2','wom3','wom4','wom5']])
                 #     curData.to_csv('curBlockScheduleData', curData)
@@ -142,22 +159,7 @@ def create_monthly_block_schedule(curMonth, block_templates,curTemplates,roomLis
                 # block_schedule = block_schedule.append(curData)
                 # block_schedule = block_schedule.reset_index()
 
-        block_schedule.to_csv('curblockschedule.csv')
-        if (first_day_of_month):
-            curWOM = 1
-            if((d.isoweekday() == 6) | (d.isoweekday() == 7)):
-                start_day = 1
-            else:
-                first_day_of_month = False
-                start_day = d.isoweekday()
-        else:
-            if(d.isoweekday() == start_day):
-                curWOM += 1
-        print('day ', d, 'WOM ', curWOM)
-        # if ((d.isoweekday() == 6) & (first_day_of_month)):
-        #     curWOM = 1 
-        # elif (d.isoweekday() == 6):
-        #     curWOM +=1
+
         
 
     block_no_release = block_schedule
