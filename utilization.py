@@ -136,7 +136,7 @@ else:
     print('block no release ', block_no_release)
     cum_block_stats, cum_block_procs,block_id_owners = get_cum_block_stats_and_procs(startDate,endDate,block_owner, dataFrameLookup,block_no_release,num_npis)
     print('getting open times')
-    future_start_date = get_procedure_date('2023-8-1').date()
+    future_start_date = get_procedure_date('2023-10-1').date()
     print('block columns', block_schedule.columns)
     future_open_times = create_future_open_times(future_start_date, dataFrameLookup,softBlockLookup, block_schedule,'opentime.csv')
 
@@ -295,6 +295,7 @@ def get_pt_hours_async():
     unit = get_data(request.json, "unit")
     curDate = get_data(request.json, "startDate")
     startDate = get_procedure_date(curDate).date()
+
     procedures = getPTProcedures(startDate,dataFrameLookup[unit])
     print('procedures', procedures.columns)
     pt_hours['surgeryInfo'] = get_unit_report_hours(get_prime_time_procedure_hours(procedures, prime_time_hours['start'], prime_time_hours['end'],curDate))

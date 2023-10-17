@@ -6,8 +6,10 @@ import pandas as pd
 def get_num_frequencies(block_data):
     mylist = block_data.columns.tolist()
     r = re.compile(".+blockStartDate$")
-    newlist = list(filter(r.match, mylist)) # Read Note below
-    return len(newlist)
+    newlist = list(filter(r.match, mylist)) # Read Note below()
+    print('get frequencies', len(newlist))
+    num_freq = len(newlist)
+    return num_freq
 
 
 
@@ -16,6 +18,7 @@ def fill_column(colName, value,data):
 
 def fill_empty_data(num_frequencies, data):
     for x in range(num_frequencies):
+        print('x ', x)
         data = fill_column(f'frequencies[{x}].dowApplied', -1,data)
         data = fill_column(f'frequencies[{x}].weeksOfMonth[0]',-1,data)
         data =fill_column(f'frequencies[{x}].weeksOfMonth[1]',-1,data)
@@ -47,9 +50,12 @@ def get_block_data(block_data):
     block_data = block_data[(block_data['type'] == 'Surgeon') | (block_data['type'] == 'Surgical Specialty')
                             | (block_data['type'] == 'Surgeon Group') | (block_data['flexId'] == -1)].copy()
     block_data['type'] = block_data.apply(lambda row: updateClosedBlockType(row), axis=1)
+    print('block data', block_data)
     return block_data
 
 
 def create_block_data(filename):
+    print('filename', filename)
     block_data = pd.read_csv(filename)
+    print('read file')
     return get_block_data(block_data)

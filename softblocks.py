@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import date, timedelta,datetime
-from utilities import create_date_with_time, formatProcedureTimes, formatMinutes
+from utilities import create_date_with_time, formatProcedureTimes, formatMinutes,get_procedure_date
 
 def get_soft_blocks(start_date, softBlocks, room):
     if (softBlocks.shape[0] == 0):
@@ -10,6 +10,9 @@ def get_soft_blocks(start_date, softBlocks, room):
 def get_open_times(start_date, openTimes, room):
     curTimes = openTimes[(openTimes['room'] == room) & (openTimes['proc_date'] == str(start_date)) &
                          (openTimes['open_type'] == 'OPEN')]
+    # test_date = get_procedure_date('2023-11-03').date()
+    # if ((start_date == test_date) & (room == 'BH CSC 09')):
+    #     curTimes.to_csv('curTimes.csv')
     if (curTimes.shape[0] == 0):
         return []
     else:
@@ -37,12 +40,15 @@ def add_open_time(name, block_type,unit,room, block_date, start_time, end_time, 
         formatted_end = formatProcedureTimes(end_time)
         time_difference = (end_time - start_time).seconds/60
         formatted_time = formatMinutes(time_difference)
+        print('unused columns', unusedTime.columns)
         unusedTime.loc[curIndex]=[name,str(block_date), formatted_start,formatted_end, unit,room,time_difference,formatted_time,block_type, release_date,start_time,"NA"]
         return curIndex
 
 
 def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time, open_end_time,curIndex, unusedTime):
     create_new_block = False
+    print('in compare and open times')
+    print('Soft Start Time', soft_start_time,'Soft End time', soft_end_time, 'Open Start Time', open_start_time,'Open end time',open_end_time )
     if (open_end_time <= soft_start_time):
         return create_new_block
     if (open_start_time >= soft_end_time):
@@ -59,6 +65,7 @@ def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time,
         update_open_time_with_column('formatted_minutes', curIndex, formatted_time, unusedTime)
         print('changing local_start 1')
     if ((open_start_time  < soft_start_time) & (open_end_time > soft_start_time) & (open_end_time <= soft_end_time)):
+        print('IN OVERLAP')
         formatted_end = formatProcedureTimes(soft_start_time)
         time_difference = (soft_start_time - open_start_time).seconds/60
         formatted_time = formatMinutes(time_difference)
@@ -97,13 +104,18 @@ def compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time,
 
 def change_open_times(soft_date, softBlockRow, openIndexes, unusedTime,unit,room):
     recheck_blocks = False
-    # print('entering change open times')
+    print('entering change open times')
+    print('soft date', soft_date, 'unit', unit, 'room', room)
     soft_start_time = softBlockRow['local_start_time']
     soft_end_time = softBlockRow['local_end_time']
     # print('open indexes', openIndexes)
     add_open_time('SOFT BLOCK', 'SOFT',unit,room, soft_date, soft_start_time, soft_end_time, "NA", unusedTime)   
     for curIndex in openIndexes:
+        test_date = get_procedure_date('2023-11-03').date()
+        if ((soft_date == test_date) & (room == 'BH CSC 09')):
+            unusedTime.to_csv('curTimes.csv')
         openTime = unusedTime.iloc[curIndex]
+
         # print('open time before', openTime)
         # print('curIndex', curIndex)
         open_start_time_text = openTime['local_start_time']
@@ -112,8 +124,17 @@ def change_open_times(soft_date, softBlockRow, openIndexes, unusedTime,unit,room
         # print('end time', open_end_time_text)
         open_start_time = create_date_with_time(soft_date, open_start_time_text)
         open_end_time = create_date_with_time(soft_date, open_end_time_text)
+
+        test_date = get_procedure_date('2023-11-3').date()
+        if ((soft_date == test_date) & (unit == 'BH CSC') & (room == 'BH CSC 09')):
+            print('SOFT DATE CHANGE')
+            print('****************')
+            print('****************')
+            print ('date', soft_date, )
+
         if(compare_soft_and_open_times(soft_start_time, soft_end_time, open_start_time, open_end_time,curIndex, unusedTime)):
             # print('creating new open block', soft_date, room, soft_end_time, open_end_time )
+
             add_open_time('OPEN', 'OPEN',unit,room, soft_date, soft_end_time, open_end_time, "NA", unusedTime)  
             recheck_blocks = True
         # print('opentime after', unusedTime.iloc[curIndex])

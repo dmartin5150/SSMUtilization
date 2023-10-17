@@ -66,6 +66,7 @@ def cast_block_datetimes_to_cst(block_schedule):
 
 
 def generate_block_templates(block_data, frequencies):
+    print('in generate block')
     block_data.reset_index(inplace=True)
     num_rows = block_data.shape[0]
     index= 0
@@ -82,6 +83,7 @@ def generate_block_templates(block_data, frequencies):
     cast_block_datetimes_to_cst(block_schedule)
     convert_start_end_datetime_to_date_only(block_schedule)
     # print('block template units', block_schedule['unit'].drop_duplicates())
+    print('returning from get block templates')
     return block_schedule
     # return block_schedule[(block_schedule['state'] != 'COMPLETE')]
 
@@ -89,6 +91,7 @@ def generate_block_templates(block_data, frequencies):
 
 def get_block_templates(block_data):
     frequencies = get_num_frequencies(block_data)
+    print('get frequencies 2')
     return generate_block_templates(block_data,frequencies)
 
 
@@ -101,6 +104,7 @@ def get_block_templates_from_file(filename):
     return block_templates
 
 def create_block_templates(block_data, output_filename):
+    print('in create block templates')
     block_templates = get_block_templates(block_data)
     block_templates.to_csv(output_filename,index=False)
     return block_templates

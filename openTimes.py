@@ -180,12 +180,13 @@ def update_dates(future_open_times):
 def create_future_open_times(start_date, dataFrameLookup,softBlockLookup, block_schedule,filename):
     if (start_date.day != 1):
         start_date = date(start_date.year, start_date.month, 1)
-    start_date, end_date = get_date_range_with_date(start_date,3)
+    start_date, end_date = get_date_range_with_date(start_date,2)
     unused_time =pd.DataFrame(columns=open_time_cols)
     for unit in units:
         for room in orLookUp[unit]:
             # print(room)
             unused_time = get_future_open_times(start_date, end_date, dataFrameLookup[unit],unit, room, block_schedule,unused_time)
+            unused_time.reset_index(inplace=True,drop=True)
             # print('soft block open')
             unused_time = update_open_times_from_softblocks(start_date, end_date, unit, room, softBlockLookup, unused_time) 
             # print('block soft block open') 
